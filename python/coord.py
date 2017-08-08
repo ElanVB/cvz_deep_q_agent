@@ -10,3 +10,10 @@ class Coord():
 
 	def copy(self):
 		return Coord(x=self.x, y=self.y)
+
+	def distance(self, coord):
+		x_diff = self.x - coord.x
+		y_diff = self.y - coord.y
+		dist = (x_diff**2 + y_diff**2)**(0.5)
+
+		return dist
