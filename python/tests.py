@@ -23,5 +23,11 @@ class CoordTestCase(unittest.TestCase):
 			"({}, {})".format(self.test_x, self.test_y), str(self.coord)
 		)
 
+	def test_copy(self):
+		copy = self.coord.copy()
+		self.assertEqual(self.coord.x, copy.x)
+		self.assertEqual(self.coord.y, copy.y)
+		self.assertEqual(str(self.coord), str(copy))
+
 if __name__ == "__main__":
     unittest.main()
