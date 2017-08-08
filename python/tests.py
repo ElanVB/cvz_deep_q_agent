@@ -10,6 +10,19 @@ class CoordTestCase(unittest.TestCase):
 	def tearDown(self):
 		del self.coord
 
+	def test_constructor(self):
+		with self.assertRaises(TypeError):
+			Coord(x=1.0, y=0)
+
+		with self.assertRaises(TypeError):
+			Coord(x=1, y=1.0)
+
+		with self.assertRaises(TypeError):
+			Coord(x="string", y="zz")
+
+		with self.assertRaises(TypeError):
+			Coord(x=(1.0, 1), y=0)
+
 	def test_x_coord(self):
 		self.assertEqual(self.test_x, self.coord.x)
 		self.assertNotEqual(self.coord.x-1, self.coord.x)
