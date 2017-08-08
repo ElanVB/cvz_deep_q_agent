@@ -7,3 +7,6 @@ class Coord():
 		return str(
 			"({}, {})".format(self.x, self.y)
 		)
+
+	def copy(self):
+		return Coord(x=self.x, y=self.y)
