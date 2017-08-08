@@ -12,12 +12,6 @@ class CoordTestCase(unittest.TestCase):
 
 	def test_constructor(self):
 		with self.assertRaises(TypeError):
-			Coord(x=1.0, y=0)
-
-		with self.assertRaises(TypeError):
-			Coord(x=1, y=1.0)
-
-		with self.assertRaises(TypeError):
 			Coord(x="string", y="zz")
 
 		with self.assertRaises(TypeError):
