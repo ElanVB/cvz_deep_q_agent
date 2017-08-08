@@ -1,10 +1,10 @@
 class Coord():
 	def __init__(self, x, y):
-		if type(x) is not int:
-			raise TypeError("x must be an integer")
+		if not isinstance(x, (int, float)):
+			raise TypeError("x must be an integer or a float")
 
-		if type(y) is not int:
-			raise TypeError("y must be an integer")
+		if not isinstance(y, (int, float)):
+			raise TypeError("y must be an integer or a float")
 
 		self.x = x
 		self.y = y
@@ -23,3 +23,6 @@ class Coord():
 		dist = (x_diff**2 + y_diff**2)**(0.5)
 
 		return dist
+
+	def key(self):
+		return (self.x, self.y)
