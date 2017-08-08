@@ -18,5 +18,10 @@ class CoordTestCase(unittest.TestCase):
 		self.assertEqual(self.test_y, self.coord.y)
 		self.assertNotEqual(self.coord.y-1, self.coord.y)
 
+	def test_string_representation(self):
+		self.assertEqual(
+			"({}, {})".format(self.test_x, self.test_y), str(self.coord)
+		)
+
 if __name__ == "__main__":
     unittest.main()
