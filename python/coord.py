@@ -1,5 +1,11 @@
 class Coord():
 	def __init__(self, x, y):
+		if type(x) is not int:
+			raise TypeError("x must be an integer")
+
+		if type(y) is not int:
+			raise TypeError("y must be an integer")
+
 		self.x = x
 		self.y = y
 
