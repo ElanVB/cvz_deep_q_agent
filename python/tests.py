@@ -29,5 +29,24 @@ class CoordTestCase(unittest.TestCase):
 		self.assertEqual(self.coord.y, copy.y)
 		self.assertEqual(str(self.coord), str(copy))
 
+	def test_distance(self):
+		copy = self.coord.copy()
+		self.assertEqual(0, self.coord.distance(copy))
+		self.assertEqual(0, self.coord.distance(self.coord))
+		self.assertEqual(0, copy.distance(self.coord))
+		self.assertEqual(0, copy.distance(copy))
+
+		dist = 2**0.5
+		self.assertEqual(dist, Coord(x=0, y=0).distance(Coord(x=1, y=1)))
+		self.assertEqual(dist, Coord(x=0, y=0).distance(Coord(x=1, y=-1)))
+		self.assertEqual(dist, Coord(x=0, y=0).distance(Coord(x=-1, y=1)))
+		self.assertEqual(dist, Coord(x=0, y=0).distance(Coord(x=-1, y=-1)))
+
+		dist = 2
+		self.assertEqual(dist, Coord(x=0, y=0).distance(Coord(x=0, y=2)))
+		self.assertEqual(dist, Coord(x=0, y=0).distance(Coord(x=0, y=-2)))
+		self.assertEqual(dist, Coord(x=0, y=0).distance(Coord(x=2, y=0)))
+		self.assertEqual(dist, Coord(x=0, y=0).distance(Coord(x=-2, y=0)))
+
 if __name__ == "__main__":
     unittest.main()
