@@ -1,4 +1,5 @@
 from coord import Coord
+import math
 
 class Moveable(Coord):
 	def __init__(self, x, y, max_dist=None):
@@ -15,3 +16,25 @@ class Moveable(Coord):
 		string = super().__repr__()
 		string += " - range: {}".format(self.range) if self.range != None else ""
 		return string
+
+	def move(self, x, y):
+		if not isinstance(x, (int, float)):
+			raise TypeError("x must be an integer or a float")
+
+		if not isinstance(y, (int, float)):
+			raise TypeError("y must be an integer or a float")
+
+		if self.range != None:
+			dist = self.distance(Coord(x=x, y=y)) # this may be in inefficient
+			if dist <= self.range:
+				self.x = x
+				self.y = y
+			else:
+				angle = math.atan2(y - self.y, x - self.x)
+				x_inc = self.range * math.cos(angle)
+				y_inc = self.range * math.sin(angle)
+				self.x += x_inc
+				self.y += y_inc
+		else:
+			self.x = x
+			self.y = y
