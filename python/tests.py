@@ -1,6 +1,7 @@
 import unittest
 from coord import Coord
 from moveable import Moveable
+import math
 
 class CoordTestCase(unittest.TestCase):
 	def setUp(self):
@@ -56,8 +57,8 @@ class CoordTestCase(unittest.TestCase):
 
 class MoveableTestCase(unittest.TestCase):
 	def setUp(self):
-		self.test_x = 1
-		self.test_y = 2
+		self.test_x = 0
+		self.test_y = 0
 		self.test_range = 3.0
 		self.mover_a = Moveable(self.test_x, self.test_y)
 		self.mover_b = Moveable(self.test_x, self.test_y, self.test_range)
@@ -122,6 +123,66 @@ class MoveableTestCase(unittest.TestCase):
 			"({}, {}) - range: {}".format(self.test_x, self.test_y, self.test_range),
 			str(self.mover_b)
 		)
+
+	def test_move(self):
+		x = 100
+		y = -100
+		self.mover_a.move(x, y)
+		self.assertEqual(
+			Moveable(x, y), self.mover_a
+		)
+
+		self.mover_b.move(x, y)
+		self.assertEqual(
+			self.mover_b.distance(Coord(self.test_x, self.test_y)),
+			self.test_range
+		)
+
+		self.assertEqual(
+			self.mover_b, Moveable(
+				self.test_x + self.test_range * math.cos(-math.pi/4),
+				self.test_y + self.test_range * math.sin(-math.pi/4),
+				self.test_range
+			)
+		)
+
+		pos = self.mover_b.copy()
+		self.mover_b.move(self.test_x, self.test_y)
+		self.assertEqual(
+			self.mover_b.distance(pos),
+			self.test_range
+		)
+
+		self.assertEqual(
+			self.mover_b, Moveable(
+				round(pos.x + self.test_range * math.cos(math.pi-math.pi/4), 9),
+				round(pos.y + self.test_range * math.sin(math.pi-math.pi/4), 9),
+				self.test_range
+			)
+		)
+
+		x = -4365.23453
+		y = 12.23452
+		self.mover_a.move(x, y)
+		self.assertEqual(
+			Moveable(x, y), self.mover_a
+		)
+
+		mover_b_before = self.mover_b.copy()
+		self.mover_b.move(x, y)
+		self.assertEqual(
+			self.mover_b.distance(Coord(self.test_x, self.test_y)),
+			self.test_range
+		)
+
+		pos = self.mover_b.copy()
+		self.mover_b.move(self.test_x, self.test_y)
+		self.assertEqual(
+			self.mover_b.distance(pos),
+			self.test_range
+		)
+
+		self.assertEqual(self.mover_b, mover_b_before)
 
 if __name__ == "__main__":
     unittest.main()
