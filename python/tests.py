@@ -33,9 +33,7 @@ class CoordTestCase(unittest.TestCase):
 
 	def test_copy(self):
 		copy = self.coord.copy()
-		self.assertEqual(self.coord.x, copy.x)
-		self.assertEqual(self.coord.y, copy.y)
-		self.assertEqual(str(self.coord), str(copy))
+		self.assertEqual(copy, self.coord)
 
 	def test_distance(self):
 		copy = self.coord.copy()
@@ -82,9 +80,48 @@ class MoveableTestCase(unittest.TestCase):
 		self.assertEqual(self.test_range, self.mover_b.range)
 		self.assertNotEqual(self.test_range-1, self.mover_b.range)
 
-	def test_coord(self):
+	def test_position(self):
 		self.assertEqual(self.test_x, self.mover_a.x)
 		self.assertEqual(self.test_y, self.mover_a.y)
+
+	def test_copy(self):
+		copy_a = self.mover_a.copy()
+		copy_b = self.mover_b.copy()
+
+		self.assertEqual(copy_a, self.mover_a)
+		self.assertNotEqual(copy_a, self.mover_b)
+
+		self.assertEqual(copy_b, self.mover_b)
+		self.assertNotEqual(copy_b, self.mover_a)
+
+	def test_distance(self):
+		copy = self.mover_a.copy()
+		self.assertEqual(0, self.mover_a.distance(copy))
+		self.assertEqual(0, self.mover_a.distance(self.mover_a))
+		self.assertEqual(0, copy.distance(self.mover_a))
+		self.assertEqual(0, copy.distance(copy))
+
+		dist = 2**0.5
+		self.assertEqual(dist, Moveable(x=0, y=0).distance(Moveable(x=1, y=1)))
+		self.assertEqual(dist, Moveable(x=0, y=0).distance(Moveable(x=1, y=-1)))
+		self.assertEqual(dist, Moveable(x=0, y=0).distance(Moveable(x=-1, y=1)))
+		self.assertEqual(dist, Moveable(x=0, y=0).distance(Moveable(x=-1, y=-1)))
+
+		dist = 2
+		self.assertEqual(dist, Moveable(x=0, y=0).distance(Moveable(x=0, y=2)))
+		self.assertEqual(dist, Moveable(x=0, y=0).distance(Moveable(x=0, y=-2)))
+		self.assertEqual(dist, Moveable(x=0, y=0).distance(Moveable(x=2, y=0)))
+		self.assertEqual(dist, Moveable(x=0, y=0).distance(Moveable(x=-2, y=0)))
+
+	def test_string_representation(self):
+		self.assertEqual(
+			"({}, {})".format(self.test_x, self.test_y), str(self.mover_a)
+		)
+
+		self.assertEqual(
+			"({}, {}) - range: {}".format(self.test_x, self.test_y, self.test_range),
+			str(self.mover_b)
+		)
 
 if __name__ == "__main__":
     unittest.main()
