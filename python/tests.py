@@ -235,5 +235,57 @@ class EntityTestCase(unittest.TestCase):
 			str(self.entity)
 		)
 
+	def test_move(self):
+		x = 100
+		y = -100
+		self.entity.move(x, y)
+		self.assertEqual(
+			round(self.entity.distance(Coord(self.test_x, self.test_y)), 9),
+			self.test_move_range
+		)
+
+		self.assertEqual(
+			self.entity, Entity(
+				self.test_x + self.test_move_range * math.cos(-math.pi/4),
+				self.test_y + self.test_move_range * math.sin(-math.pi/4),
+				self.test_interact_range,
+				self.test_move_range
+			)
+		)
+
+		pos = self.entity.copy()
+		self.entity.move(self.test_x, self.test_y)
+		self.assertEqual(
+			round(self.entity.distance(pos), 9),
+			self.test_move_range
+		)
+
+		self.assertEqual(
+			self.entity, Entity(
+				round(pos.x + self.test_move_range * math.cos(math.pi-math.pi/4), 9),
+				round(pos.y + self.test_move_range * math.sin(math.pi-math.pi/4), 9),
+				self.test_interact_range,
+				self.test_move_range
+			)
+		)
+
+		x = -4365.23453
+		y = 12.23452
+		entity_before = self.entity.copy()
+		self.entity.move(x, y)
+		self.assertEqual(
+			self.entity.distance(Coord(self.test_x, self.test_y)),
+			self.test_move_range
+		)
+
+		pos = self.entity.copy()
+		self.entity.move(self.test_x, self.test_y)
+		self.assertEqual(
+			self.entity.distance(pos),
+			self.test_move_range
+		)
+
+		self.assertEqual(self.entity, entity_before)
+
 if __name__ == "__main__":
     unittest.main()
