@@ -287,5 +287,17 @@ class EntityTestCase(unittest.TestCase):
 
 		self.assertEqual(self.entity, entity_before)
 
+	def test_in_interact_range(self):
+		x = 1000
+		y = 100
+		pos = Coord(x, y)
+		dist = self.entity.distance(pos)
+		self.assertEqual(dist <= self.test_interact_range,
+			self.entity.in_range(pos))
+
+		entity = Entity(0, 0, 1.0)
+		self.assertFalse(entity.in_range(Moveable(1, 1)))
+		self.assertTrue(entity.in_range(Entity(.5, .5, 1)))
+
 if __name__ == "__main__":
     unittest.main()
