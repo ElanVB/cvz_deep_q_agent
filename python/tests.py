@@ -1,6 +1,7 @@
 import unittest
 from coord import Coord
 from moveable import Moveable
+from entity import Entity
 import math
 
 class CoordTestCase(unittest.TestCase):
@@ -60,8 +61,9 @@ class MoveableTestCase(unittest.TestCase):
 		self.test_x = 0
 		self.test_y = 0
 		self.test_range = 3.0
-		self.mover_a = Moveable(self.test_x, self.test_y)
-		self.mover_b = Moveable(self.test_x, self.test_y, self.test_range)
+		self.mover_a = Moveable(x=self.test_x, y=self.test_y)
+		self.mover_b = Moveable(x=self.test_x, y=self.test_y,
+			max_dist=self.test_range)
 
 	def tearDown(self):
 		del self.mover_a
@@ -183,6 +185,37 @@ class MoveableTestCase(unittest.TestCase):
 		)
 
 		self.assertEqual(self.mover_b, mover_b_before)
+
+class EntityTestCase(unittest.TestCase):
+	def setUp(self):
+		self.test_x = 0
+		self.test_y = 0
+		self.test_move_range = 100.0
+		self.test_interact_range = 200.0
+		self.entity = Entity(
+			x=self.test_x, y=self.test_y,
+			interact_range=self.test_interact_range,
+			max_dist=self.test_move_range
+		)
+
+	def tearDown(self):
+		del self.entity
+
+	def test_constructor(self):
+		with self.assertRaises(TypeError):
+			Entity((1, 2))
+
+		with self.assertRaises(TypeError):
+			Entity(1, "asdf", max_dist=1.0)
+
+		with self.assertRaises(TypeError):
+			Entity(1, 2, max_dist="asdf")
+
+		with self.assertRaises(TypeError):
+			Entity(1, 2, max_dist=10)
+
+		with self.assertRaises(TypeError):
+			Entity(1, 2, "93", max_dist=10)
 
 if __name__ == "__main__":
     unittest.main()
