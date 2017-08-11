@@ -1,4 +1,4 @@
-# add speed? in interact_range
+from coord import Coord
 from moveable import Moveable
 
 class Entity(Moveable):
@@ -16,3 +16,9 @@ class Entity(Moveable):
 	def __repr__(self):
 		return super().__repr__() +\
 			", interact_range: {}".format(self.interact_range)
+
+	def in_range(self, other):
+		if not isinstance(other, (Coord, Moveable, self.__class__)):
+			raise TypeError("other must be of type Entity or a parent thereof")
+
+		return self.distance(other) <= self.interact_range # this = will be case dependant...
