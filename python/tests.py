@@ -217,5 +217,23 @@ class EntityTestCase(unittest.TestCase):
 		with self.assertRaises(TypeError):
 			Entity(1, 2, "93", max_dist=10)
 
+	def test_position(self):
+		self.assertEqual(self.test_x, self.entity.x)
+		self.assertEqual(self.test_y, self.entity.y)
+
+	def test_copy(self):
+		copy_a = self.entity.copy()
+		self.assertEqual(copy_a, self.entity)
+
+	def test_string_representation(self):
+		self.assertEqual(
+			"({}, {}) - range: {}, interact_range: {}"
+				.format(
+					self.test_x, self.test_y, self.test_move_range,
+					self.test_interact_range
+				),
+			str(self.entity)
+		)
+
 if __name__ == "__main__":
     unittest.main()
