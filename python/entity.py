@@ -21,4 +21,4 @@ class Entity(Moveable):
 		if not isinstance(other, (Coord, Moveable, self.__class__)):
 			raise TypeError("other must be of type Entity or a parent thereof")
 
-		return self.distance(other) <= self.interact_range # this = will be case dependant...
+		return self.distance(other) < self.interact_range
