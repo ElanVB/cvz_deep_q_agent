@@ -335,5 +335,18 @@ class EnvironmentTestCase(unittest.TestCase):
 		with self.assertRaises(TypeError):
 			Environment(1, 1.0)
 
+	def test_fibonacci_sequence(self):
+		self.assertEqual(1, self.environment._fibonacci(1))
+		self.assertEqual(1, self.environment._fibonacci(2))
+		self.assertEqual(2, self.environment._fibonacci(3))
+		self.assertEqual(8, self.environment._fibonacci(6))
+		self.assertListEqual(
+			[1, 1, 2, 3, 5, 8], self.environment._fibonacci_seq
+		)
+		self.assertEqual(5, self.environment._fibonacci(5))
+		self.assertListEqual(
+			[1, 1, 2, 3, 5, 8], self.environment._fibonacci_seq
+		)
+
 if __name__ == "__main__":
     unittest.main()
