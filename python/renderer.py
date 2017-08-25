@@ -41,3 +41,33 @@ class Renderer():
 			image = image.convert()
 
 		return image
+
+	def _load_shooter_image(self):
+		shooter_image = self._load_image("Shooter.png")
+
+		width = int(config.SHOOTER_INTERACT_RANGE * 2 * self._x_scale)
+		height = int(config.SHOOTER_INTERACT_RANGE * 2 * self._y_scale)
+
+		self._shooter_image = pygame.transform.scale(
+			shooter_image, (width, height)
+		)
+
+	def _load_human_image(self):
+		human_image = self._load_image("Human.png")
+
+		width = int(config.ZOMBIE_INTERACT_RANGE * 2 * self._x_scale)
+		height = int(config.ZOMBIE_INTERACT_RANGE * 2 * self._y_scale)
+
+		self._human_image = pygame.transform.scale(
+			human_image, (width, height)
+		)
+
+	def _load_zombie_image(self):
+		zombie_image = self._load_image("Zombie.png")
+
+		width = int(config.ZOMBIE_INTERACT_RANGE * 2 * self._x_scale)
+		height = int(config.ZOMBIE_INTERACT_RANGE * 2 * self._y_scale)
+
+		self._zombie_image = pygame.transform.scale(
+			zombie_image, (width, height)
+		)
