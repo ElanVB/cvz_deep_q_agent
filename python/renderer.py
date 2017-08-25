@@ -114,3 +114,13 @@ class Renderer():
 			)
 
 		pygame.display.update()
+
+	def freeze(self):
+		loop = True
+		while loop:
+			for event in pygame.event.get():
+				if event.type is QUIT:
+					pygame.quit()
+					exit()
+				elif event.type is KEYDOWN:
+					loop = False
