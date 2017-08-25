@@ -62,3 +62,8 @@ class Environment():
 			self.zombies[zombie_id].move(min_pos.x, min_pos.y)
 			self.zombies[zombie_id].x = int(self.zombies[zombie_id].x)
 			self.zombies[zombie_id].y = int(self.zombies[zombie_id].y)
+
+	def move_shooter(self, x, y):
+		self.shooter.move(x, y)
+		self.shooter.x = int(self.shooter.x)
+		self.shooter.y = int(self.shooter.y)
