@@ -5,7 +5,13 @@ import config
 from random import randrange
 
 class Environment():
-	def __init__(self, num_humans, num_zombies):
+	def __init__(self, num_humans=0, num_zombies=0):
+		if not isinstance(num_humans, int):
+			raise TypeError("num_humans must be an integer")
+
+		if not isinstance(num_zombies, int):
+			raise TypeError("num_zombies must be an integer")
+
 		shooter = Entity(
 			randrange(config.WIDTH), randrange(config.HEIGHT),
 			config.SHOOTER_INTERACT_RANGE,
@@ -101,6 +107,12 @@ class Environment():
 		return len(self.humans) == 0 or len(self.zombies) == 0
 
 	def update(self, x, y):
+		if not isinstance(x, (int, float)):
+			raise TypeError("x must be an integer or a float")
+
+		if not isinstance(y, (int, float)):
+			raise TypeError("y must be an integer or a float")
+
 		self.move_zombies()
 		self.move_shooter(x, y)
 		self.shoot_zombies()
