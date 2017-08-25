@@ -132,3 +132,27 @@ class Environment():
 		self.humans = humans
 		self.zombies = zombies
 		self.score = 0
+
+	def get_state_variables(self, entity):
+		return [
+			entity.x / config.WIDTH,
+			entity.y / config.HEIGHT
+		]
+
+	def get_state(self):
+		state = []
+		state += self.get_state_variables(self.shooter)
+
+		for i in range(100):
+			if i not in self.humans:
+				state += [-1, -1]
+			else:
+				state += self.get_state_variables(self.humans[i])
+
+		for i in range(100):
+			if i not in self.zombies:
+				state += [-1, -1]
+			else:
+				state += self.get_state_variables(self.zombies[i])
+
+		return state
