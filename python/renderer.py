@@ -4,6 +4,12 @@ from environment import Environment
 
 class Renderer():
 	def __init__(self, window_scale=0.5):
+		if not isinstance(window_scale, float):
+			raise TypeError("window_scale must be a float")
+
+		if window_scale <= 0 or window_scale > 1.0:
+			raise ValueError("window_scale must be in the range (0.0, 1.0]")
+
 		pygame.init()
 		info_object = pygame.display.Info()
 
@@ -97,8 +103,10 @@ class Renderer():
 		)
 
 	def draw_environment(self, environment):
-		self._draw_background()
+		if not isinstance(environment, Environment):
+			raise TypeError("environment must be of type Environment")
 
+		self._draw_background()
 		self._draw_shooter(environment.shooter.x, environment.shooter.y)
 
 		for zombie_id in environment.zombies:
