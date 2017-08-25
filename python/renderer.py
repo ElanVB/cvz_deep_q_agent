@@ -71,3 +71,27 @@ class Renderer():
 		self._zombie_image = pygame.transform.scale(
 			zombie_image, (width, height)
 		)
+
+	def _draw_shooter(self, x, y):
+		x_pos = int((x - config.SHOOTER_INTERACT_RANGE) * self._x_scale)
+		y_pos = int((y - config.SHOOTER_INTERACT_RANGE) * self._y_scale)
+		self._window.blit(
+			self._shooter_image,
+			(x_pos, y_pos)
+		)
+
+	def _draw_human(self, x, y):
+		x_pos = int((x - config.ZOMBIE_INTERACT_RANGE) * self._x_scale)
+		y_pos = int((y - config.ZOMBIE_INTERACT_RANGE) * self._y_scale)
+		self._window.blit(
+			self._human_image,
+			(x_pos, y_pos)
+		)
+
+	def _draw_zombie(self, x, y):
+		x_pos = int((x - config.ZOMBIE_INTERACT_RANGE) * self._x_scale)
+		y_pos = int((y - config.ZOMBIE_INTERACT_RANGE) * self._y_scale)
+		self._window.blit(
+			self._zombie_image,
+			(x_pos, y_pos)
+		)
