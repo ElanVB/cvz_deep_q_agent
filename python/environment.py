@@ -99,3 +99,9 @@ class Environment():
 
 	def is_done(self):
 		return len(self.humans) == 0 or len(self.zombies) == 0
+
+	def update(self, x, y):
+		self.move_zombies()
+		self.move_shooter(x, y)
+		self.shoot_zombies()
+		self.eat_humans()
