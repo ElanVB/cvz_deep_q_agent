@@ -315,5 +315,25 @@ class EntityTestCase(unittest.TestCase):
 		self.assertFalse(entity.in_range(Moveable(1, 1)))
 		self.assertTrue(entity.in_range(Entity(.5, .5, 1)))
 
+class EnvironmentTestCase(unittest.TestCase):
+	def setUp(self):
+		self.environment = Environment(1, 1)
+
+	def tearDown(self):
+		del self.environment
+
+	def test_constructor(self):
+		with self.assertRaises(TypeError):
+			Environment("")
+
+		with self.assertRaises(TypeError):
+			Environment(1, "1")
+
+		with self.assertRaises(TypeError):
+			Environment(1.0, 1.2)
+
+		with self.assertRaises(TypeError):
+			Environment(1, 1.0)
+
 if __name__ == "__main__":
     unittest.main()
