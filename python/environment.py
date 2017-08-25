@@ -67,3 +67,17 @@ class Environment():
 		self.shooter.move(x, y)
 		self.shooter.x = int(self.shooter.x)
 		self.shooter.y = int(self.shooter.y)
+
+	def shoot_zombies(self):
+		zombies_killed = 0
+		dead_ids = []
+		for zombie_id in self.zombies:
+			if self.shooter.in_range(self.zombies[zombie_id]):
+				zombies_killed += 1
+				dead_ids.append(zombie_id)
+
+		for zombie_id in dead_ids:
+			del self.zombies[zombie_id]
+
+		if zombies_killed > 0:
+			self.score += self.round_score(len(self.humans), zombies_killed)
