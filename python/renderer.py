@@ -95,3 +95,22 @@ class Renderer():
 			self._zombie_image,
 			(x_pos, y_pos)
 		)
+
+	def draw_environment(self, environment):
+		self._draw_background()
+
+		self._draw_shooter(environment.shooter.x, environment.shooter.y)
+
+		for zombie_id in environment.zombies:
+			self._draw_zombie(
+				environment.zombies[zombie_id].x,
+				environment.zombies[zombie_id].y
+			)
+
+		for human_id in environment.humans:
+			self._draw_human(
+				environment.humans[human_id].x,
+				environment.humans[human_id].y
+			)
+
+		pygame.display.update()
