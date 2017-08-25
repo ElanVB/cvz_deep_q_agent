@@ -34,28 +34,28 @@ class Environment():
 		self.humans = humans
 		self.zombies = zombies
 		self.score = 0
-		self.fibonacci_seq = [1, 1, 2]
+		self._fibonacci_seq = [1, 1, 2]
 
-	def fibonacci(self, n):
-		if n <= len(self.fibonacci_seq):
-			return self.fibonacci_seq[n-1]
+	def _fibonacci(self, n):
+		if n <= len(self._fibonacci_seq):
+			return self._fibonacci_seq[n-1]
 
-		for _ in range(n - len(self.fibonacci_seq)):
-			self.fibonacci_seq.append(
-				self.fibonacci_seq[-1] + self.fibonacci_seq[-2]
+		for _ in range(n - len(self._fibonacci_seq)):
+			self._fibonacci_seq.append(
+				self._fibonacci_seq[-1] + self._fibonacci_seq[-2]
 			)
 
-		return self.fibonacci_seq[-1]
+		return self._fibonacci_seq[-1]
 
-	def round_score(self, alive_humans, zombies_killed):
+	def _round_score(self, alive_humans, zombies_killed):
 		human_score = 10 * (alive_humans**2)
 		zombie_score = 0
 		for i in range(zombies_killed):
-			zombie_score += self.fibonacci(i+2)
+			zombie_score += self._fibonacci(i+2)
 
 		return human_score * zombie_score
 
-	def move_zombies(self):
+	def _move_zombies(self):
 		for zombie_id in self.zombies:
 			min_dist = self.zombies[zombie_id].distance(self.shooter)
 			min_pos = self.shooter
@@ -69,12 +69,12 @@ class Environment():
 			self.zombies[zombie_id].x = int(self.zombies[zombie_id].x)
 			self.zombies[zombie_id].y = int(self.zombies[zombie_id].y)
 
-	def move_shooter(self, x, y):
+	def _move_shooter(self, x, y):
 		self.shooter.move(x, y)
 		self.shooter.x = int(self.shooter.x)
 		self.shooter.y = int(self.shooter.y)
 
-	def shoot_zombies(self):
+	def _shoot_zombies(self):
 		zombies_killed = 0
 		dead_ids = []
 		for zombie_id in self.zombies:
@@ -86,9 +86,9 @@ class Environment():
 			del self.zombies[zombie_id]
 
 		if zombies_killed > 0:
-			self.score += self.round_score(len(self.humans), zombies_killed)
+			self.score += self._round_score(len(self.humans), zombies_killed)
 
-	def eat_humans(self):
+	def _eat_humans(self):
 		for zombie_id in self.zombies:
 			dead_ids = []
 			for human_id in self.humans:
@@ -113,10 +113,10 @@ class Environment():
 		if not isinstance(y, (int, float)):
 			raise TypeError("y must be an integer or a float")
 
-		self.move_zombies()
-		self.move_shooter(x, y)
-		self.shoot_zombies()
-		self.eat_humans()
+		self._move_zombies()
+		self._move_shooter(x, y)
+		self._shoot_zombies()
+		self._eat_humans()
 
 	def load_state(self, shooter, humans, zombies):
 		if not isinstance(shooter, Entity):
