@@ -348,5 +348,11 @@ class EnvironmentTestCase(unittest.TestCase):
 			[1, 1, 2, 3, 5, 8], self.environment._fibonacci_seq
 		)
 
+	def test_score(self):
+		self.assertEqual(10, self.environment._round_score(1, 1))
+		self.assertEqual(40, self.environment._round_score(2, 1))
+		self.assertEqual(1080, self.environment._round_score(6, 2))
+		self.assertEqual(2160, self.environment._round_score(6, 3))
+
 if __name__ == "__main__":
     unittest.main()
