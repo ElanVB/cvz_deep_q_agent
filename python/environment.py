@@ -81,3 +81,18 @@ class Environment():
 
 		if zombies_killed > 0:
 			self.score += self.round_score(len(self.humans), zombies_killed)
+
+	def eat_humans(self):
+		for zombie_id in self.zombies:
+			dead_ids = []
+			for human_id in self.humans:
+				if self.zombies[zombie_id].in_range(self.humans[human_id]):
+					dead_ids.append(human_id)
+
+			for human_id in dead_ids:
+				self.zombies[zombie_id].x = self.humans[human_id].x
+				self.zombies[zombie_id].y = self.humans[human_id].y
+				del self.humans[human_id]
+
+		if len(self.humans) == 0:
+			self.score = 0
