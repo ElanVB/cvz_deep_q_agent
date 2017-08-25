@@ -96,3 +96,6 @@ class Environment():
 
 		if len(self.humans) == 0:
 			self.score = 0
+
+	def is_done(self):
+		return len(self.humans) == 0 or len(self.zombies) == 0
