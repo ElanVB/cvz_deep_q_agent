@@ -48,3 +48,17 @@ class Environment():
 			zombie_score += self.fibonacci(i+2)
 
 		return human_score * zombie_score
+
+	def move_zombies(self):
+		for zombie_id in self.zombies:
+			min_dist = self.zombies[zombie_id].distance(self.shooter)
+			min_pos = self.shooter
+			for human_id in self.humans:
+				dist = self.zombies[zombie_id].distance(self.humans[human_id])
+				if dist < min_dist:
+					min_dist = dist
+					min_pos = self.humans[human_id]
+
+			self.zombies[zombie_id].move(min_pos.x, min_pos.y)
+			self.zombies[zombie_id].x = int(self.zombies[zombie_id].x)
+			self.zombies[zombie_id].y = int(self.zombies[zombie_id].y)
