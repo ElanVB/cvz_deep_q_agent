@@ -1,8 +1,8 @@
 from coord import Coord
 from moveable import Moveable
 from entity import Entity
-import config
 from random import randrange
+import config
 
 class Environment():
 	def __init__(self, num_humans=0, num_zombies=0):
