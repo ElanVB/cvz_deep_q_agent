@@ -27,3 +27,6 @@ class Renderer():
 		self._load_shooter_image()
 		self._load_human_image()
 		self._load_zombie_image()
+
+	def _draw_background(self):
+		self._window.fill((0, 0, 0))
