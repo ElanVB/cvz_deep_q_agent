@@ -30,3 +30,14 @@ class Renderer():
 
 	def _draw_background(self):
 		self._window.fill((0, 0, 0))
+
+	def _load_image(self, name):
+		path = os.path.join("images", name)
+		image = pygame.image.load(path)
+
+		if ".png" in name:
+			image = image.convert_alpha()
+		else:
+			image = image.convert()
+
+		return image
