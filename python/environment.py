@@ -105,3 +105,30 @@ class Environment():
 		self.move_shooter(x, y)
 		self.shoot_zombies()
 		self.eat_humans()
+
+	def load_state(self, shooter, humans, zombies):
+		if not isinstance(shooter, Entity):
+			raise TypeError("shooter must be of type Entity")
+
+		if not isinstance(humans, dict):
+			raise TypeError("humans must be a dictionary")
+
+		if not isinstance(zombies, dict):
+			raise TypeError("zombies must be a dictionary")
+
+		for human in humans:
+			if not isinstance(human, Coord):
+				raise TypeError(
+					"humans must contain only objects of type Coord"
+				)
+
+		for zombie in zombies:
+			if not isinstance(zombie, Entity):
+				raise TypeError(
+					"zombies must contain only objects of type Entity"
+				)
+
+		self.shooter = shooter
+		self.humans = humans
+		self.zombies = zombies
+		self.score = 0
