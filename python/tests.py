@@ -1,8 +1,8 @@
-import unittest
+import unittest, math
 from coord import Coord
 from moveable import Moveable
 from entity import Entity
-import math
+from environment import Environment
 
 class CoordTestCase(unittest.TestCase):
 	def setUp(self):
@@ -105,10 +105,18 @@ class MoveableTestCase(unittest.TestCase):
 		self.assertEqual(0, copy.distance(copy))
 
 		dist = 2**0.5
-		self.assertEqual(dist, Moveable(x=0, y=0).distance(Moveable(x=1, y=1)))
-		self.assertEqual(dist, Moveable(x=0, y=0).distance(Moveable(x=1, y=-1)))
-		self.assertEqual(dist, Moveable(x=0, y=0).distance(Moveable(x=-1, y=1)))
-		self.assertEqual(dist, Moveable(x=0, y=0).distance(Moveable(x=-1, y=-1)))
+		self.assertEqual(
+			dist, Moveable(x=0, y=0).distance(Moveable(x=1, y=1))
+		)
+		self.assertEqual(
+			dist, Moveable(x=0, y=0).distance(Moveable(x=1, y=-1))
+		)
+		self.assertEqual(
+			dist, Moveable(x=0, y=0).distance(Moveable(x=-1, y=1))
+		)
+		self.assertEqual(
+			dist, Moveable(x=0, y=0).distance(Moveable(x=-1, y=-1))
+		)
 
 		dist = 2
 		self.assertEqual(dist, Moveable(x=0, y=0).distance(Moveable(x=0, y=2)))
@@ -122,7 +130,9 @@ class MoveableTestCase(unittest.TestCase):
 		)
 
 		self.assertEqual(
-			"({}, {}) - range: {}".format(self.test_x, self.test_y, self.test_range),
+			"({}, {}) - range: {}".format(
+				self.test_x, self.test_y, self.test_range
+			),
 			str(self.mover_b)
 		)
 
@@ -262,8 +272,14 @@ class EntityTestCase(unittest.TestCase):
 
 		self.assertEqual(
 			self.entity, Entity(
-				round(pos.x + self.test_move_range * math.cos(math.pi-math.pi/4), 9),
-				round(pos.y + self.test_move_range * math.sin(math.pi-math.pi/4), 9),
+				round(
+					pos.x + self.test_move_range * math.cos(math.pi-math.pi/4),
+					9
+				),
+				round(
+					pos.y + self.test_move_range * math.sin(math.pi-math.pi/4),
+					9
+				),
 				self.test_interact_range,
 				self.test_move_range
 			)
