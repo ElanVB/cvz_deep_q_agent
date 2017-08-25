@@ -107,6 +107,12 @@ class Environment():
 		return len(self.humans) == 0 or len(self.zombies) == 0
 
 	def update(self, x, y):
+		if not isinstance(x, (int, float)):
+			raise TypeError("x must be an integer or a float")
+
+		if not isinstance(y, (int, float)):
+			raise TypeError("y must be an integer or a float")
+
 		self.move_zombies()
 		self.move_shooter(x, y)
 		self.shoot_zombies()

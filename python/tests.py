@@ -2,7 +2,6 @@ import unittest
 from coord import Coord
 from moveable import Moveable
 from entity import Entity
-from environment import Environment
 import math
 
 class CoordTestCase(unittest.TestCase):
@@ -299,28 +298,6 @@ class EntityTestCase(unittest.TestCase):
 		entity = Entity(0, 0, 1.0)
 		self.assertFalse(entity.in_range(Moveable(1, 1)))
 		self.assertTrue(entity.in_range(Entity(.5, .5, 1)))
-
-class EnvironmentTestCase(unittest.TestCase):
-	def setUp(self):
-		self.environment = Environment(1, 1)
-
-	def tearDown(self):
-		del self.environment
-
-	def test_fibonacci_sequence(self):
-		self.assertEqual(1, self.environment.fibonacci(1))
-		self.assertEqual(1, self.environment.fibonacci(2))
-		self.assertEqual(2, self.environment.fibonacci(3))
-		self.assertEqual(8, self.environment.fibonacci(6))
-		self.assertListEqual([1, 1, 2, 3, 5, 8], self.environment.fibonacci_seq)
-		self.assertEqual(5, self.environment.fibonacci(5))
-		self.assertListEqual([1, 1, 2, 3, 5, 8], self.environment.fibonacci_seq)
-
-	def test_score(self):
-		self.assertEqual(10, self.environment.round_score(1, 1))
-		self.assertEqual(40, self.environment.round_score(2, 1))
-		self.assertEqual(1080, self.environment.round_score(6, 2))
-		self.assertEqual(2160, self.environment.round_score(6, 3))
 
 if __name__ == "__main__":
     unittest.main()

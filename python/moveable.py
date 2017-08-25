@@ -26,7 +26,7 @@ class Moveable(Coord):
 
 		if self.range != None:
 			dist = self.distance(Coord(x=x, y=y)) # this may be in inefficient
-			if dist <= self.range: # this if hasn't been tested...
+			if dist <= self.range:
 				self.x = x
 				self.y = y
 			else:

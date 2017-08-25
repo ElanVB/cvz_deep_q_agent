@@ -26,9 +26,7 @@ human
 * Environment - contains all Entities and facilitates reactions between them
 - variables that define the size of the Environment
 - variable to store the score of the current state
-+ function that updates all Entities (takes action and gets next state)
++ function that updates all Entities
 + function that checks for collisions (in range to shoot / zombie eats human)
 + function that forces all Entities to stay in bounds
 + function to calculate the score
-
-* Random Level generation?
