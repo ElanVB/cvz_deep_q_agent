@@ -1,0 +1,17 @@
+training_frames = 50000000
+batch_size = 32
+memory_size = 1000000
+reply_start_size = 50000
+state_sequence_length = 4
+network_update_frequency = 10000
+gamma = 0.99
+frame_skip_rate = 4
+learning_rate = 2.5e-4 # RMSprop
+gradient_momentum = 0.95 # RMSprop
+squared_gradient_momentum = 0.95 # RMSprop
+min_squared_gradient = 0.01
+initial_epsilon = 1.0
+final_epsilon = 0.1
+final_epsilon_frame = 1000000
+hidden_layers = [300,  200]
+activation = 'relu'
