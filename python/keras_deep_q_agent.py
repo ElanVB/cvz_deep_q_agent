@@ -32,3 +32,6 @@ class Agent:
 		model.compile(loss='mse', optimizer=Nadam(lr=hyperparmas.learning_rate))
 
 		return model
+
+	def _save_model(self, filename="keras_dqn.h5"):
+		self._model.save(filename)
