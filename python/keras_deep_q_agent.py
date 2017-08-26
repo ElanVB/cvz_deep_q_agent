@@ -46,3 +46,43 @@ class Agent:
 
 	def store_frame(self, state, action, reward, new_state, done):
 		self._memory.append((state, action, reward, new_state, done))
+
+	def experienced_replay(self):
+		if len(self._memory) > hyperparmas.batch_size and
+		len(self._memory) > hyperparmas.replay_start_size:
+			inputs = np.zeros((
+				hyperparmas.batch_size,
+				self._state_dim,
+				hyperparmas.state_sequence_length
+			))
+			targets = np.zeros((
+				hyperparmas.batch_size,
+				self._action_dim
+			))
+			sample = random.sample(self._memory, hyperparmas.batch_size)
+
+			sample_count = 0
+			for state, action, reward, new_state, done in sample:
+				target = reward
+				if not done:
+					target += (
+						hyperparmas.gamma *
+						np.amax(self._model.predict(new_state)[0])
+					)
+
+				prev_target = self._model.predict(state)[0]
+				new_target = prev_target
+				new_target[action] = target
+
+				states[sample_count] = state
+				targets[sample_count] = new_target
+				sample_count += 1
+
+			model.fit(
+				states, targets,
+				batch_size=hyperparmas.batch_size,
+				epochs=1, verbose=0
+			)
+
+		if self._epsilon > hyperparmas.final_epsilon:
+			self._epsilon -= self._epsilon_decay
