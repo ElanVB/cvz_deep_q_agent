@@ -12,6 +12,7 @@ class Agent:
 			(hyperparmas.initial_epsilon - hyperparmas.final_epsilon) /
 			hyperparmas.final_epsilon_frame
 		)
+		self._action_dim = action_dim
 		self._model = self._compile_model(state_dim, action_dim)
 
 	def _compile_model(self, state_dim, action_dim):
@@ -35,3 +36,9 @@ class Agent:
 
 	def _save_model(self, filename="keras_dqn.h5"):
 		self._model.save(filename)
+
+	def get_action(self, state, on_policy=False):
+		if not on_policy and np.random.rand() <= self._epsilon:
+			return int(np.random.rand() * self._action_dim)
+		else:
+			return np.argmax(self._model.predict(state))
