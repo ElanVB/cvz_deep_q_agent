@@ -5,12 +5,15 @@ from random import randrange
 import config
 
 class Environment():
-	def __init__(self, num_humans=0, num_zombies=0):
+	def __init__(self, num_humans=0, num_zombies=0, better_rewards=False):
 		if not isinstance(num_humans, int):
 			raise TypeError("num_humans must be an integer")
 
 		if not isinstance(num_zombies, int):
 			raise TypeError("num_zombies must be an integer")
+
+		if not isinstance(better_rewards, bool):
+			raise TypeError("better_rewards must be a boolean")
 
 		shooter = Entity(
 			randrange(config.WIDTH), randrange(config.HEIGHT),
@@ -35,6 +38,7 @@ class Environment():
 		self.zombies = zombies
 		self.score = 0
 		self.reward = 0
+		self._better_rewards = better_rewards
 		self._fibonacci_seq = [1, 1, 2]
 
 	def _fibonacci(self, n):
@@ -89,10 +93,11 @@ class Environment():
 		if zombies_killed > 0:
 			self.reward = self._round_score(len(self.humans), zombies_killed)
 			self.score += self.reward
-		else:
-			self.reward = 0
 
 	def _eat_humans(self):
+		if self._better_rewards:
+			dead_count = 0
+
 		for zombie_id in self.zombies:
 			dead_ids = []
 			for human_id in self.humans:
@@ -104,8 +109,19 @@ class Environment():
 				self.zombies[zombie_id].y = self.humans[human_id].y
 				del self.humans[human_id]
 
+			if self._better_rewards:
+				dead_count += len(dead_ids)
+
+		if self._better_rewards and dead_count > 0:
+			live_humans = len(self.humans)
+			num_zombies = len(self.zombies)
+			self.reward -= (
+				self._round_score(live_humans+dead_count, num_zombies) -
+				self._round_score(live_humans, num_zombies)
+			)
+
 		if len(self.humans) == 0:
-			self.reward = -self.score
+			self.reward -= self.score
 			self.score = 0
 
 	def is_done(self):
@@ -118,6 +134,7 @@ class Environment():
 		if not isinstance(y, (int, float)):
 			raise TypeError("y must be an integer or a float")
 
+		self.reward = 0
 		self._move_zombies()
 		self._move_shooter(x, y)
 		self._shoot_zombies()
@@ -149,6 +166,7 @@ class Environment():
 		self.humans = humans
 		self.zombies = zombies
 		self.score = 0
+		self.reward = 0
 
 	def get_state_variables(self, entity):
 		return [
