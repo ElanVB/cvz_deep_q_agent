@@ -1,7 +1,7 @@
 training_frames = 50000000
 batch_size = 32
 memory_size = 1000000
-reply_start_size = 50000
+replay_start_size = 50000
 state_sequence_length = 4
 network_update_frequency = 10000
 gamma = 0.99
