@@ -12,6 +12,7 @@ class Agent:
 			(hyperparmas.initial_epsilon - hyperparmas.final_epsilon) /
 			hyperparmas.final_epsilon_frame
 		)
+		self._state_dim = state_dim
 		self._action_dim = action_dim
 		self._model = self._compile_model(state_dim, action_dim)
 
@@ -41,7 +42,7 @@ class Agent:
 		if not on_policy and np.random.rand() <= self._epsilon:
 			return int(np.random.rand() * self._action_dim)
 		else:
-			return np.argmax(self._model.predict(state))
+			return np.argmax(self._model.predict(state)[0])
 
-	def store_frame(self, frame):
-		self._memory.append(frame)
+	def store_frame(self, state, action, reward, new_state, done):
+		self._memory.append((state, action, reward, new_state, done))
