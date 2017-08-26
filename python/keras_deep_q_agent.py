@@ -42,3 +42,6 @@ class Agent:
 			return int(np.random.rand() * self._action_dim)
 		else:
 			return np.argmax(self._model.predict(state))
+
+	def store_frame(self, frame):
+		self._memory.append(frame)
