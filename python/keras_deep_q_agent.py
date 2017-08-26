@@ -13,3 +13,22 @@ class Agent:
 			hyperparmas.final_epsilon_frame
 		)
 		self._model = self._compile_model(state_dim, action_dim)
+
+	def _compile_model(self, state_dim, action_dim):
+		model = Sequential()
+		model.add(Dense(
+			hyperparmas.hidden_layers[0],
+			input_shape=(state_dim, hyperparmas.state_sequence_length),
+			activation=hyperparmas.activation
+		))
+
+		for size in hyperparmas.hidden_layers[1:]:
+			model.add(Dense(
+				size,
+				activation=hyperparmas.activation
+			))
+
+		model.add(Dense(action_dim, activation='linear'))
+		model.compile(loss='mse', optimizer=Nadam(lr=hyperparmas.learning_rate))
+
+		return model
