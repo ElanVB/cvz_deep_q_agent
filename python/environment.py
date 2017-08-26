@@ -34,6 +34,7 @@ class Environment():
 		self.humans = humans
 		self.zombies = zombies
 		self.score = 0
+		self.reward = 0
 		self._fibonacci_seq = [1, 1, 2]
 
 	def _fibonacci(self, n):
@@ -86,7 +87,10 @@ class Environment():
 			del self.zombies[zombie_id]
 
 		if zombies_killed > 0:
-			self.score += self._round_score(len(self.humans), zombies_killed)
+			self.reward = self._round_score(len(self.humans), zombies_killed)
+			self.score += self.reward
+		else:
+			self.reward = 0
 
 	def _eat_humans(self):
 		for zombie_id in self.zombies:
@@ -101,6 +105,7 @@ class Environment():
 				del self.humans[human_id]
 
 		if len(self.humans) == 0:
+			self.reward = -self.score
 			self.score = 0
 
 	def is_done(self):
