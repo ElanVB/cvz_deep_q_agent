@@ -22,7 +22,7 @@ class Interface:
 
 		if actions == "default":
 			self._points = [(0, 0), (16000, 0), (0, 9000), (16000, 9000)]
-			self._output_dim = len(self._points+1) # plus one for no-op
+			self._output_dim = len(self._points)+1 # plus one for no-op
 		else:
 			raise ValueError("action value not supported")
 
@@ -87,7 +87,7 @@ class Interface:
 			avg_over = 100
 			scores = collections.deque(maxlen=avg_over)
 			averages = collections.deque(maxlen=avg_over)
-			log_filename"log-" + "-".join(config) + ".txt"
+			log_filename = "log-" + "-".join(config) + ".txt"
 
 		if "experienced_replay" in config:
 			if "infinite" in config:
@@ -132,7 +132,9 @@ class Interface:
 								sys.stdout.flush()
 
 								with open(log_filename, "a") as log_file:
-									log_file.write(",".join(averages) + ",")
+									log_file.write(
+										",".join(map(str, averages)) + ","
+									)
 
 						self._agent.experienced_replay()
 						self.initialize_environment()
