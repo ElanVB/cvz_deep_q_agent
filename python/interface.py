@@ -1,4 +1,4 @@
-import sys, time, hyperparams
+import sys, time, hyperparams, random
 import numpy as np
 from environment import Environment
 from renderer import Renderer
@@ -14,6 +14,9 @@ class Interface:
 		if render:
 			self._renderer = Renderer()
 			self._render_delay = render_delay
+
+		self._max_humans = max_humans
+		self._max_zombies = max_zombies
 
 		self._input_dim = 2 + 2*max_humans + 2*max_zombies
 
@@ -36,3 +39,14 @@ class Interface:
 				)
 
 			self._agent.load_weights(weights)
+
+	def initialize_environment(self):
+		humans = ranom.randrange(1, self._max_humans+1)\
+			if self._randomness\
+			else self._max_humans
+
+		zombies = ranom.randrange(1, self._max_zombies+1)\
+			if self._randomness\
+			else self._max_zombies
+
+		self.env = Environment(humans, zombies, better_rewards=True)
