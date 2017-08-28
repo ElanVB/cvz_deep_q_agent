@@ -25,3 +25,14 @@ class Interface:
 
 		self._randomness = randomness
 		self._fine_tune = fine_tune
+
+	def initialize_agent(self, weights=None):
+		self._agent = Agent(input_dim, output_dim)
+
+		if weights != None:
+			if not isinstance(weights, str):
+				raise TypeError(
+					"weights must be a string path to your weights file"
+				)
+				
+			self._agent.load_weights(weights)
