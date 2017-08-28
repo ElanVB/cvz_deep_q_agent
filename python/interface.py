@@ -49,4 +49,15 @@ class Interface:
 			if self._randomness\
 			else self._max_zombies
 
-		self.env = Environment(humans, zombies, better_rewards=True)
+		self._env = Environment(humans, zombies, better_rewards=True)
+
+	def get_state(self):
+		state = np.array(self._env.get_state())
+		state = np.append(
+			state[:2 + 2 * self._max_humans],
+			state[102:102 + 2 * self._max_zombies]
+		)
+		state = np.vstack([state] * hyperparams.state_sequence_length)
+		state = state[np.newaxis, ]
+
+		return state
