@@ -22,7 +22,8 @@ class Interface:
 
 		if actions == "default":
 			self._points = [(0, 0), (16000, 0), (0, 9000), (16000, 9000)]
-			self._output_dim = len(self._points)+1 # plus one for no-op
+			self._output_dim = len(self._points)
+			# self._output_dim = len(self._points)+1 # plus one for no-op
 		else:
 			raise ValueError("action value not supported")
 
@@ -64,10 +65,11 @@ class Interface:
 
 	def update_environment(self, action):
 		# This must change if more action types are supported
-		if aciton < len(self._points):
-			self._env.update(points[action][0], points[action][1])
-		else:
-			self._env.update(self._env.shooter.x, self._env.shooter.y)
+		# if aciton < len(self._points):
+		# 	self._env.update(points[action][0], points[action][1])
+		# else:
+		# 	self._env.update(self._env.shooter.x, self._env.shooter.y)
+		self._env.update(self._points[action][0], self._points[action][1])
 
 	def agent_observe(self, state, epsilon_decay=False):
 		action = self._agent.get_action(state)
@@ -83,7 +85,7 @@ class Interface:
 		if epsilon_decay:
 			self._agent.decay_epsilon()
 
-		return new_state
+		return new_state, done
 
 	def train_agent(self, config=["experienced_replay", "infinite", "track"]):
 		save_file = "-".join(config) + ".h5"
@@ -106,7 +108,7 @@ class Interface:
 				hyperparams.replay_start_size = 50000
 
 				while True:
-					state = self.agent_observe(state, epsilon_decay=True)
+					state, done = self.agent_observe(state, epsilon_decay=True)
 
 					if self._render and episode % 20 == 0:
 						self._renderer.draw_environment(self._env)
@@ -147,7 +149,7 @@ class Interface:
 				for episode in range(hyperparams.training_episodes):
 					done = False
 					while not done:
-						state = self.agent_observe(state)
+						state, done = self.agent_observe(state)
 
 						if self._render and episode % 20 == 0:
 							self._renderer.draw_environment(self._env)
@@ -182,3 +184,5 @@ class Interface:
 
 					if episode % 100 == 0:
 						self._agent.save_model(save_file)
+
+		self._agent.save_model(save_file)
