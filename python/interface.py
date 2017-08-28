@@ -61,3 +61,16 @@ class Interface:
 		state = state[np.newaxis, ]
 
 		return state
+
+	def update_environment(self, action):
+		# This must change if more action types are supported
+		if action == 0:
+			self._env.update(0, 0)
+		elif action == 1:
+			self._env.update(16000, 0)
+		elif action == 2:
+			self._env.update(0, 9000)
+		elif action == 3:
+			self._env.update(16000, 9000)
+		else:
+			self._env.update(self._env.shooter.x, self._env.shooter.y)
