@@ -75,6 +75,22 @@ class Interface:
 		else:
 			self._env.update(self._env.shooter.x, self._env.shooter.y)
 
+	def agent_observe(self, state, epsilon_decay=False):
+		action = self._agent.get_action(state)
+		self.update_environment(action)
+		done = self._env.is_done()
+		reward = self._env.reward
+		new_state = self.get_state()
+
+		self._agent.store_frame(
+			state, action, reward, new_state, done
+		)
+
+		if epsilon_decay:
+			self._agent.decay_epsilon()
+
+		return new_state
+
 	def train_agent(self, config=["experienced_replay", "infinite", "track"]):
 		save_file = "-".join(config) + ".h5"
 		self.initialize_agent()
@@ -96,17 +112,7 @@ class Interface:
 				hyperparams.replay_start_size = 50000
 
 				while True:
-					action = self._agent.get_action(state)
-					self.update_environment(action)
-					done = self._env.is_done()
-					reward = self._env.reward
-					new_state = self.get_state()
-
-					self._agent.store_frame(
-						state, action, reward, new_state, done
-					)
-					state = new_state
-					self._agent.decay_epsilon()
+					state = self.agent_observe(state, epsilon_decay=True)
 
 					if self._render and episode % 20 == 0:
 						self._renderer.draw_environment(self._env)
@@ -126,7 +132,7 @@ class Interface:
 								sys.stdout.write(
 									"\repisode {}, average = {} - epsilon = {}"
 									.format(
-										episode+1, average, self._agent._epsilon
+										episode, average, self._agent._epsilon
 									)
 								)
 								sys.stdout.flush()
@@ -142,3 +148,43 @@ class Interface:
 
 						if episode % 100 == 0:
 							self._agent.save_model(save_file)
+
+			else:
+				for episode in range(hyperparams.training_episodes):
+					done = False
+					while not done:
+						state = self.agent_observe(state)
+
+						if self._render and episode % 20 == 0:
+							self._renderer.draw_environment(self._env)
+							time.sleep(self._render_delay)
+
+
+					if "track" in config:
+						scores.append(self._env.score)
+
+						if episode >= avg_over:
+							average = sum(np.array(scores))/avg_over
+							averages.append(average)
+
+						if max(episode, 1) % avg_over == 0:
+							sys.stdout.write(
+								"\repisode {}, average = {} - epsilon = {}"
+								.format(
+									episode, average, self._agent._epsilon
+								)
+							)
+							sys.stdout.flush()
+
+							with open(log_filename, "a") as log_file:
+								log_file.write(
+									",".join(map(str, averages)) + ","
+								)
+
+					self._agent.experienced_replay()
+					self._agent.decay_epsilon()
+					self.initialize_environment()
+					state = self.get_state()
+
+					if episode % 100 == 0:
+						self._agent.save_model(save_file)
