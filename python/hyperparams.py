@@ -1,4 +1,5 @@
 training_episodes = 70000
+test_episodes = 1000
 training_frames = 10000
 # training_frames = 50000000
 batch_size = 32

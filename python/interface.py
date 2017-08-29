@@ -87,6 +87,14 @@ class Interface:
 
 		return new_state, done
 
+	def agent_on_policy_act(self, state):
+		action = self._agent.get_action(state, on_policy=True)
+		self.update_environment(action)
+		done = self._env.is_done()
+		new_state = self.get_state()
+
+		return new_state, done
+
 	def train_agent(self, config=["experienced_replay", "infinite", "track"]):
 		save_file = "-".join(config) + ".h5"
 		self.initialize_agent()
@@ -188,3 +196,26 @@ class Interface:
 						self._agent.save_model(save_file)
 
 		self._agent.save_model(save_file)
+
+	def test_agent(self):
+		total_score = 0.0
+		for episode in range(hyperparams.test_episodes):
+			self.initialize_environment()
+			state = self.get_state()
+			done = False
+
+			while not done:
+				state, done = self.agent_on_policy_act(state)
+
+			total_score += self._env.score
+
+			if episode % int(hyperparams.test_episodes/100) == 0:
+				sys.stdout.write(
+					"\r{:.2f}% complete"
+					.format(float(episode) * 100.0/hyperparams.test_episodes)
+				)
+				sys.stdout.flush()
+
+		print(
+			"\nAverage score: {}".format(total_score/hyperparams.test_episodes)
+		)
