@@ -121,12 +121,13 @@ class Interface:
 							scores.append(self._env.score)
 
 							if episode >= avg_over:
-								average = sum(np.array(scores))/avg_over
+								average = sum(scores)/avg_over
 								averages.append(average)
 
 							if episode % avg_over == 0:
+								average = sum(averages)/avg_over
 								sys.stdout.write(
-									"\repisode {}, average = {} - epsilon = {}"
+									"\repisode {}, avg = {:.4f}, eps = {:.4f}"
 									.format(
 										episode, average, self._agent._epsilon
 									)
@@ -160,12 +161,13 @@ class Interface:
 						scores.append(self._env.score)
 
 						if episode >= avg_over:
-							average = sum(np.array(scores))/avg_over
+							average = sum(scores)/avg_over
 							averages.append(average)
 
 						if max(episode, 1) % avg_over == 0:
+							average = sum(averages)/avg_over
 							sys.stdout.write(
-								"\repisode {}, average = {} - epsilon = {}"
+								"\repisode {}, avg = {:.4f}, eps = {:.4f}"
 								.format(
 									episode, average, self._agent._epsilon
 								)
