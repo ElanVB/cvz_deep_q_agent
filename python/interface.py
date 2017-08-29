@@ -11,9 +11,9 @@ class Interface:
 		fine_tune=False, actions="default"
 	):
 		self._render = render
+		self._render_delay = render_delay
 		if render:
 			self._renderer = Renderer()
-			self._render_delay = render_delay
 
 		self._max_humans = max_humans
 		self._max_zombies = max_zombies
@@ -212,10 +212,36 @@ class Interface:
 			if episode % int(hyperparams.test_episodes/100) == 0:
 				sys.stdout.write(
 					"\r{:.2f}% complete"
-					.format(float(episode) * 100.0/hyperparams.test_episodes)
+					.format(episode * 100.0/hyperparams.test_episodes)
 				)
 				sys.stdout.flush()
 
 		print(
 			"\nAverage score: {}".format(total_score/hyperparams.test_episodes)
+		)
+
+	def demo_agent(self, episodes=10):
+		total_score = 0.0
+		renderer = Renderer()
+
+		for episode in range(episodes):
+			self.initialize_environment()
+			state = self.get_state()
+			done = False
+
+			while not done:
+				state, done = self.agent_on_policy_act(state)
+				renderer.draw_environment(self._env)
+				time.sleep(self._render_delay)
+
+			total_score += self._env.score
+
+			sys.stdout.write(
+				"\r{:.2f}% complete"
+				.format(episode * 100.0/episodes)
+			)
+			sys.stdout.flush()
+
+		print(
+			"\nAverage score: {}".format(total_score/episodes)
 		)
