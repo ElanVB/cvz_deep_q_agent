@@ -1,4 +1,4 @@
-training_episodes = 70000
+training_episodes = 35000
 test_episodes = 1000
 training_frames = 10000
 # training_frames = 50000000
@@ -19,6 +19,6 @@ initial_epsilon = 1.0
 final_epsilon = 0.1
 # final_epsilon_frame = 40000
 final_epsilon_frame = 1000000
-final_epsilon_episode = 40000
+final_epsilon_episode = 30000
 hidden_layers = [300,  200]
 activation = 'relu'

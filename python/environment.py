@@ -41,6 +41,9 @@ class Environment():
 		self._better_rewards = better_rewards
 		self._fibonacci_seq = [1, 1, 2]
 
+		if better_rewards:
+			self._max_reward = self._round_score(num_humans, num_zombies)
+
 	def _fibonacci(self, n):
 		if n <= len(self._fibonacci_seq):
 			return self._fibonacci_seq[n-1]
@@ -139,6 +142,9 @@ class Environment():
 		self._move_shooter(x, y)
 		self._shoot_zombies()
 		self._eat_humans()
+
+		if self._better_rewards:
+			self.reward /= self._max_reward
 
 	def load_state(self, shooter, humans, zombies):
 		if not isinstance(shooter, Entity):
