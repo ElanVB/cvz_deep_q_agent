@@ -26,16 +26,22 @@
     * MacOSX
         * comes installed with python 3.4+
     * update pip: `sudo pip3 install --upgrade pip`
-* all other dependancies can be installed by running the `sudo pip3 install -r requirements.txt` command from the `python` folder
+* all other dependancies can be installed by running the `sudo pip3 install -r requirements_XXX.txt` command from the `python` folder, where XXX is cpu or gpu
     * keras
         * tensorflow
             * numpy
             * six
-            * wheel?
+            * wheel
         * scipy
-        * scikit-learn
-        * pillow
+        * pyyaml
+        * setuptools
         * h5py
+	* bleach
+	* protobuf
+	* tensorflow-tensorboard
+	* html5lib
+	* markdown
+	* werkzeug
     * pygame
 
 # Design Process:
