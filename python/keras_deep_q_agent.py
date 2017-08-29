@@ -10,8 +10,8 @@ class Agent:
 		self._epsilon = hyperparams.initial_epsilon
 		self._epsilon_decay = (
 			(hyperparams.initial_epsilon - hyperparams.final_epsilon) /
-			# hyperparams.final_epsilon_episode
-			hyperparams.final_epsilon_frame
+			hyperparams.final_epsilon_episode
+			# hyperparams.final_epsilon_frame
 		)
 		self._state_dim = state_dim
 		self._action_dim = action_dim

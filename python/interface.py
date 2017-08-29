@@ -116,7 +116,7 @@ class Interface:
 				hyperparams.replay_start_size = 50000
 
 				while True:
-					state, done = self.agent_observe(state, epsilon_decay=True)
+					state, done = self.agent_observe(state)
 
 					if self._render and episode % 20 == 0:
 						self._renderer.draw_environment(self._env)
@@ -148,6 +148,7 @@ class Interface:
 									)
 
 						self._agent.experienced_replay()
+						self._agent.decay_epsilon()
 						self.initialize_environment()
 						state = self.get_state()
 
