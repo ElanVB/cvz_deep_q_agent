@@ -56,19 +56,21 @@ class Agent:
 		if self._epsilon > hyperparams.final_epsilon:
 			self._epsilon -= self._epsilon_decay
 
-	def experienced_replay(self):
+	def experienced_replay(self, batches=1):
 		if len(self._memory) > hyperparams.batch_size and\
 		len(self._memory) > hyperparams.replay_start_size:
 			inputs = np.zeros((
-				hyperparams.batch_size,
+				hyperparams.batch_size * batches,
 				hyperparams.state_sequence_length,
 				self._state_dim
 			))
 			targets = np.zeros((
-				hyperparams.batch_size,
+				hyperparams.batch_size * batches,
 				self._action_dim
 			))
-			sample = random.sample(self._memory, hyperparams.batch_size)
+			sample = random.sample(
+				self._memory, hyperparams.batch_size * batches
+			)
 
 			sample_count = 0
 			for state, action, reward, new_state, done in sample:

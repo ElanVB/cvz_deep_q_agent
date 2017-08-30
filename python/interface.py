@@ -65,8 +65,8 @@ class Interface:
 
 	def update_environment(self, action):
 		# This must change if more action types are supported
-		if aciton < len(self._points):
-			self._env.update(points[action][0], points[action][1])
+		if action < len(self._points):
+			self._env.update(self._points[action][0], self._points[action][1])
 		else:
 			self._env.update(self._env.shooter.x, self._env.shooter.y)
 		# self._env.update(self._points[action][0], self._points[action][1])
@@ -120,7 +120,61 @@ class Interface:
 			averages = collections.deque(maxlen=avg_over)
 			log_filename = "log-" + "-".join(config) + ".txt"
 
-		if "experienced_replay" in config:
+		if "experimental_network_update_delay" in config:
+			for episode in range(
+				hyperparams.training_episodes //
+				hyperparams.network_update_frequency
+			):
+				for observation in range(hyperparams.network_update_frequency):
+					done = False
+					while not done:
+						if "frame_skip" in config:
+							if current_frame % hyperparams.frame_skip_rate == 0:
+								state, done = self.agent_observe(state)
+							else:
+								state, done = self.agent_observe(
+									state, use_previous_action=True
+								)
+
+							current_frame += 1
+						else:
+							state, done = self.agent_observe(state)
+
+						if self._render and observation+1 == hyperparams.network_update_frequency:
+							self._renderer.draw_environment(self._env)
+							time.sleep(self._render_delay)
+
+					if "track" in config:
+						scores.append(self._env.score)
+
+						if observation >= avg_over:
+							average = sum(scores)/avg_over
+							averages.append(average)
+
+						if max(observation, 1) % avg_over == 0:
+							average = sum(averages)/avg_over
+							sys.stdout.write(
+								"\repisode {}, avg = {:.4f}, eps = {:.4f}"
+								.format(
+									observation + (episode+1)*hyperparams.network_update_frequency, average, self._agent._epsilon
+								)
+							)
+							sys.stdout.flush()
+
+							with open(log_filename, "a") as log_file:
+								log_file.write(
+									",".join(map(str, averages)) + ","
+								)
+
+					self._agent.decay_epsilon()
+					self.initialize_environment()
+					state = self.get_state()
+					current_frame = 0
+
+			self._agent.experienced_replay(hyperparams.network_update_frequency)
+			self._agent.save_model(save_file)
+
+		elif "experienced_replay" in config:
 			if "infinite" in config:
 				# hyperparams.final_epsilon_frame = 10000000
 				hyperparams.memory_size = 1000000
