@@ -72,6 +72,15 @@ class Agent:
 				self._memory, hyperparams.batch_size * batches
 			)
 
+			# sample_indexes = np.random.choice(
+			# 	len(self._memory), size=hyperparams.batch_size * batches
+			# )
+			# sample = collections.deque()
+			# for sample_i in sample_indexes:
+			# 	sample.append(self._memory[sample_i])
+
+			# sample = np.array(self._memory)[sample_indexes]
+
 			sample_count = 0
 			for state, action, reward, new_state, done in sample:
 				target = reward

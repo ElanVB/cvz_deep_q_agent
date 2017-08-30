@@ -147,11 +147,11 @@ class Interface:
 					if "track" in config:
 						scores.append(self._env.score)
 
-						if observation >= avg_over:
+						if (observation+1) >= avg_over:
 							average = sum(scores)/avg_over
 							averages.append(average)
 
-						if max(observation, 1) % avg_over == 0:
+						if (observation+1) % avg_over == 0:
 							average = sum(averages)/avg_over
 							sys.stdout.write(
 								"\repisode {}, avg = {:.4f}, eps = {:.4f}"
@@ -171,8 +171,8 @@ class Interface:
 					state = self.get_state()
 					current_frame = 0
 
-			self._agent.experienced_replay(hyperparams.network_update_frequency)
-			self._agent.save_model(save_file)
+				self._agent.experienced_replay(hyperparams.network_update_frequency)
+				self._agent.save_model(save_file)
 
 		elif "experienced_replay" in config:
 			if "infinite" in config:
