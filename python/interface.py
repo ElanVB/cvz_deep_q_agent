@@ -22,8 +22,8 @@ class Interface:
 
 		if actions == "default":
 			self._points = [(0, 0), (16000, 0), (0, 9000), (16000, 9000)]
-			self._output_dim = len(self._points)
-			# self._output_dim = len(self._points)+1 # plus one for no-op
+			# self._output_dim = len(self._points)
+			self._output_dim = len(self._points)+1 # plus one for no-op
 		else:
 			raise ValueError("action value not supported")
 
@@ -65,21 +65,26 @@ class Interface:
 
 	def update_environment(self, action):
 		# This must change if more action types are supported
-		# if aciton < len(self._points):
-		# 	self._env.update(points[action][0], points[action][1])
-		# else:
-		# 	self._env.update(self._env.shooter.x, self._env.shooter.y)
-		self._env.update(self._points[action][0], self._points[action][1])
+		if aciton < len(self._points):
+			self._env.update(points[action][0], points[action][1])
+		else:
+			self._env.update(self._env.shooter.x, self._env.shooter.y)
+		# self._env.update(self._points[action][0], self._points[action][1])
 
-	def agent_observe(self, state, epsilon_decay=False):
-		action = self._agent.get_action(state)
-		self.update_environment(action)
+	def agent_observe(
+		self, state, epsilon_decay=False, use_previous_action=False
+	):
+		if not use_previous_action:
+			action = self._agent.get_action(state)
+			self._previous_action = action
+
+		self.update_environment(self._previous_action)
 		done = self._env.is_done()
 		reward = self._env.reward
 		new_state = self.get_state()
 
 		self._agent.store_frame(
-			state, action, reward, new_state, done
+			state, self._previous_action, reward, new_state, done
 		)
 
 		if epsilon_decay:
@@ -95,13 +100,19 @@ class Interface:
 
 		return new_state, done
 
-	def train_agent(self, config=["experienced_replay", "infinite", "track"]):
+	def train_agent(self, config=[
+		"experienced_replay", "infinite", "track", "frame_skip",
+		"experimental_network_update_delay"
+	]):
 		save_file = "-".join(config) + ".h5"
 		self.initialize_agent()
 		episode = 0
 
 		self.initialize_environment()
 		state = self.get_state()
+
+		if "frame_skip" in config:
+			current_frame = 0
 
 		if "track" in config:
 			avg_over = 100
@@ -111,18 +122,29 @@ class Interface:
 
 		if "experienced_replay" in config:
 			if "infinite" in config:
-				hyperparams.final_epsilon_frame = 10000000
+				# hyperparams.final_epsilon_frame = 10000000
 				hyperparams.memory_size = 1000000
 				hyperparams.replay_start_size = 50000
 
 				while True:
-					state, done = self.agent_observe(state)
+					if "frame_skip" in config:
+						if current_frame % hyperparams.frame_skip_rate == 0:
+							state, done = self.agent_observe(state)
+						else:
+							state, done = self.agent_observe(
+								state, use_previous_action=True
+							)
+
+						current_frame += 1
+					else:
+						state, done = self.agent_observe(state)
 
 					if self._render and episode % 20 == 0:
 						self._renderer.draw_environment(self._env)
 						time.sleep(self._render_delay)
 
 					if done:
+						current_frame = 0
 						episode += 1
 
 						if "track" in config:
@@ -159,7 +181,17 @@ class Interface:
 				for episode in range(hyperparams.training_episodes):
 					done = False
 					while not done:
-						state, done = self.agent_observe(state)
+						if "frame_skip" in config:
+							if current_frame % hyperparams.frame_skip_rate == 0:
+								state, done = self.agent_observe(state)
+							else:
+								state, done = self.agent_observe(
+									state, use_previous_action=True
+								)
+
+							current_frame += 1
+						else:
+							state, done = self.agent_observe(state)
 
 						if self._render and episode % 20 == 0:
 							self._renderer.draw_environment(self._env)
@@ -192,6 +224,7 @@ class Interface:
 					self._agent.decay_epsilon()
 					self.initialize_environment()
 					state = self.get_state()
+					current_frame = 0
 
 					if episode % 100 == 0:
 						self._agent.save_model(save_file)
