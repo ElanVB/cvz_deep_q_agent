@@ -97,6 +97,9 @@ class Environment():
 			self.reward = self._round_score(len(self.humans), zombies_killed)
 			self.score += self.reward
 
+		if self._better_rewards:
+			self.reward /= self._max_reward
+
 	def _eat_humans(self):
 		if self._better_rewards:
 			dead_count = 0
@@ -115,17 +118,20 @@ class Environment():
 			if self._better_rewards:
 				dead_count += len(dead_ids)
 
-		if self._better_rewards and dead_count > 0:
-			live_humans = len(self.humans)
-			num_zombies = len(self.zombies)
-			self.reward -= (
-				self._round_score(live_humans+dead_count, num_zombies) -
-				self._round_score(live_humans, num_zombies)
-			)
+		# if self._better_rewards and dead_count > 0:
+		# 	live_humans = len(self.humans)
+		# 	num_zombies = len(self.zombies)
+		# 	self.reward -= (
+		# 		self._round_score(live_humans+dead_count, num_zombies) -
+		# 		self._round_score(live_humans, num_zombies)
+		# 	)
 
 		if len(self.humans) == 0:
-			self.reward -= self.score
+			# self.reward -= self.score
 			self.score = 0
+
+		if self._better_rewards and dead_count > 0:
+			self.reward = -1
 
 	def is_done(self):
 		return len(self.humans) == 0 or len(self.zombies) == 0
@@ -143,8 +149,8 @@ class Environment():
 		self._shoot_zombies()
 		self._eat_humans()
 
-		if self._better_rewards:
-			self.reward /= self._max_reward
+		# if self._better_rewards:
+		# 	self.reward /= self._max_reward
 
 	def load_state(self, shooter, humans, zombies):
 		if not isinstance(shooter, Entity):
