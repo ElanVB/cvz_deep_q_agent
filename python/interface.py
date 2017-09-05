@@ -146,7 +146,7 @@ class Interface:
 							time.sleep(self._render_delay)
 
 					scores.append(self._env.score)
-					average = sum(scores)/min(avg_over, len(averages))
+					average = sum(scores)/min(avg_over, len(scores))
 					averages.append(average)
 
 					self._agent.decay_epsilon()
