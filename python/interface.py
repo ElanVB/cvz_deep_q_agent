@@ -22,8 +22,8 @@ class Interface:
 
 		if actions == "default":
 			self._points = [(0, 0), (16000, 0), (0, 9000), (16000, 9000)]
-			# self._output_dim = len(self._points)
-			self._output_dim = len(self._points)+1 # plus one for no-op
+			self._output_dim = len(self._points)
+			# self._output_dim = len(self._points)+1 # plus one for no-op
 		else:
 			raise ValueError("action value not supported")
 
@@ -65,11 +65,11 @@ class Interface:
 
 	def update_environment(self, action):
 		# This must change if more action types are supported
-		if action < len(self._points):
-			self._env.update(self._points[action][0], self._points[action][1])
-		else:
-			self._env.update(self._env.shooter.x, self._env.shooter.y)
-		# self._env.update(self._points[action][0], self._points[action][1])
+		# if action < len(self._points):
+		# 	self._env.update(self._points[action][0], self._points[action][1])
+		# else:
+		# 	self._env.update(self._env.shooter.x, self._env.shooter.y)
+		self._env.update(self._points[action][0], self._points[action][1])
 
 	def agent_observe(
 		self, state, epsilon_decay=False, use_previous_action=False
@@ -140,38 +140,38 @@ class Interface:
 						else:
 							state, done = self.agent_observe(state)
 
-						if self._render and observation+1 == hyperparams.network_update_frequency:
+						if self._render and\
+						observation+1 == hyperparams.network_update_frequency:
 							self._renderer.draw_environment(self._env)
 							time.sleep(self._render_delay)
 
-					if "track" in config:
-						scores.append(self._env.score)
-
-						if (observation+1) >= avg_over:
-							average = sum(scores)/avg_over
-							averages.append(average)
-
-						if (observation+1) % avg_over == 0:
-							average = sum(averages)/avg_over
-							sys.stdout.write(
-								"\repisode {}, avg = {:.4f}, eps = {:.4f}"
-								.format(
-									observation + (episode+1)*hyperparams.network_update_frequency, average, self._agent._epsilon
-								)
-							)
-							sys.stdout.flush()
-
-							with open(log_filename, "a") as log_file:
-								log_file.write(
-									",".join(map(str, averages)) + ","
-								)
+					scores.append(self._env.score)
+					average = sum(scores)/min(avg_over, len(averages))
+					averages.append(average)
 
 					self._agent.decay_epsilon()
 					self.initialize_environment()
 					state = self.get_state()
 					current_frame = 0
 
-				self._agent.experienced_replay(hyperparams.network_update_frequency)
+				average = sum(averages)/min(avg_over, len(averages))
+				sys.stdout.write(
+					"\repisode {}, avg = {:.4f}, eps = {:.4f}"
+					.format(
+						(episode+1)*hyperparams.network_update_frequency,
+						average, self._agent._epsilon
+					)
+				)
+				sys.stdout.flush()
+
+				with open(log_filename, "a") as log_file:
+					log_file.write(
+						",".join(map(str, averages)) + ","
+					)
+
+				self._agent.experienced_replay(
+					hyperparams.network_update_frequency
+				)
 				self._agent.save_model(save_file)
 
 		elif "experienced_replay" in config:
