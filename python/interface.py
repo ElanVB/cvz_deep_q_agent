@@ -100,14 +100,15 @@ class Interface:
 
 		return new_state, done
 
-	def train_agent(self, config=[
+	def train_agent(self, weights=None, config=[
 		"experienced_replay", "infinite", "track", "frame_skip",
 		"experimental_network_update_delay"
 	]):
 		save_file = "-".join(config) + ".h5"
-		self.initialize_agent()
-		episode = 0
 
+		self.initialize_agent(weights)
+
+		episode = 0
 		self.initialize_environment()
 		state = self.get_state()
 
