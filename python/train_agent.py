@@ -1,6 +1,6 @@
 from interface import Interface
 
-i = Interface(max_humans=1, max_zombies=1, render=False)
+i = Interface(max_humans=4, max_zombies=20, render=False)
 # i = Interface(max_humans=10, max_zombies=10)
 i.train_agent(config=[
 	# "experienced_replay", "track"
