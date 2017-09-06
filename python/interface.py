@@ -30,7 +30,9 @@ class Interface:
 		self._randomness = randomness
 		self._fine_tune = fine_tune
 		self._env = Environment(0, 0, better_rewards=True)
-		self._environment = self._env.parse_state_file(environment)
+
+		self._environment = self._env.parse_state_file(environment)\
+		if environment != None else None
 
 	def initialize_agent(self, weights=None):
 		self._agent = Agent(self._input_dim, self._output_dim)
