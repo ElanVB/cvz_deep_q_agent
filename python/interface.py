@@ -8,7 +8,7 @@ class Interface:
 	def __init__(
 		self, render=False, render_delay=0.03,
 		max_humans=1, max_zombies=1, randomness=False,
-		fine_tune=False, actions="default"
+		fine_tune=False, actions="default", environment=None
 	):
 		self._render = render
 		self._render_delay = render_delay
@@ -29,6 +29,8 @@ class Interface:
 
 		self._randomness = randomness
 		self._fine_tune = fine_tune
+		self._env = Environment(0, 0, better_rewards=True)
+		self._environment = self._env.parse_state_file(environment)
 
 	def initialize_agent(self, weights=None):
 		self._agent = Agent(self._input_dim, self._output_dim)
@@ -42,15 +44,18 @@ class Interface:
 			self._agent.load_weights(weights)
 
 	def initialize_environment(self):
-		humans = ranom.randrange(1, self._max_humans+1)\
-			if self._randomness\
-			else self._max_humans
+		if self._environment != None:
+			self._env.load_state(self._environment)
+		else:
+			humans = ranom.randrange(1, self._max_humans+1)\
+				if self._randomness\
+				else self._max_humans
 
-		zombies = ranom.randrange(1, self._max_zombies+1)\
-			if self._randomness\
-			else self._max_zombies
+			zombies = ranom.randrange(1, self._max_zombies+1)\
+				if self._randomness\
+				else self._max_zombies
 
-		self._env = Environment(humans, zombies, better_rewards=True)
+			self._env = Environment(humans, zombies, better_rewards=True)
 
 	def get_state(self):
 		state = np.array(self._env.get_state())

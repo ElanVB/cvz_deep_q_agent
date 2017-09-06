@@ -152,7 +152,48 @@ class Environment():
 		# if self._better_rewards:
 		# 	self.reward /= self._max_reward
 
-	def load_state(self, shooter, humans, zombies):
+	def parse_state_file(self, filename):
+		state_file = open(filename, "r")
+		file_lines = state_file.readlines()
+		state_file.close()
+
+		state = dict()
+		x, y = [int(i) for i in file_lines[0].split(" ")]
+		state["shooter"] = Entity(
+			x, y,
+			config.SHOOTER_INTERACT_RANGE,
+			config.SHOOTER_MOVE_RANGE
+		)
+
+		num_humans = int(file_lines[1])
+		counter = 2
+		state["humans"] = dict()
+		for i in range(num_humans):
+			id_num, x, y = [int(i) for i in file_lines[i+counter].split(" ")]
+			state["humans"][id_num] = Coord(x, y)
+
+		counter += num_humans
+		num_zombies = int(file_lines[counter])
+		counter += 1
+		state["zombies"] = dict()
+		for i in range(num_zombies):
+			id_num, x, y = [int(i) for i in file_lines[i+counter].split(" ")]
+			state["zombies"][id_num] = Entity(
+				x, y,
+				config.ZOMBIE_INTERACT_RANGE,
+				config.ZOMBIE_MOVE_RANGE
+			)
+
+		return state
+
+	def load_state(self, state):
+		self._load_state(
+			state["shooter"].copy(),
+			{h: state["humans"][h].copy() for h in state["humans"]},
+			{z: state["zombies"][z].copy() for z in state["zombies"]}
+		)
+
+	def _load_state(self, shooter, humans, zombies):
 		if not isinstance(shooter, Entity):
 			raise TypeError("shooter must be of type Entity")
 
@@ -162,14 +203,14 @@ class Environment():
 		if not isinstance(zombies, dict):
 			raise TypeError("zombies must be a dictionary")
 
-		for human in humans:
-			if not isinstance(human, Coord):
+		for human_id in humans:
+			if not isinstance(humans[human_id], Coord):
 				raise TypeError(
 					"humans must contain only objects of type Coord"
 				)
 
-		for zombie in zombies:
-			if not isinstance(zombie, Entity):
+		for zombie_id in zombies:
+			if not isinstance(zombies[zombie_id], Entity):
 				raise TypeError(
 					"zombies must contain only objects of type Entity"
 				)
@@ -179,6 +220,9 @@ class Environment():
 		self.zombies = zombies
 		self.score = 0
 		self.reward = 0
+
+		if self._better_rewards:
+			self._max_reward = self._round_score(len(humans), len(zombies))
 
 	def get_state_variables(self, entity):
 		return [
