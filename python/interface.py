@@ -1,4 +1,4 @@
-import sys, time, hyperparams, random, collections
+import sys, time, random, collections, hyperparams
 import numpy as np
 from environment import Environment
 from renderer import Renderer
@@ -6,10 +6,41 @@ from keras_deep_q_agent import Agent
 
 class Interface:
 	def __init__(
-		self, render=False, render_delay=0.03,
-		max_humans=1, max_zombies=1, randomness=False,
-		fine_tune=False, actions="default", environment=None
+		self, training_episodes=hyperparams.training_episodes,
+		frame_skip_rate=hyperparams.frame_skip_rate,
+		initial_epsilon=hyperparams.initial_epsilon,
+		final_epsilon=hyperparams.final_epsilon,
+		epsilon_decay=hyperparams.epsilon_decay,
+		memory_size=hyperparams.memory_size,
+		learning_rate=hyperparams.learning_rate,
+		state_sequence_length=hyperparams.state_sequence_length,
+		activation=hyperparams.activation,
+		gamma=hyperparams.gamma,
+		hidden_layers=hyperparams.hidden_layers,
+		batch_size=hyperparams.batch_size,
+		replay_start_size=hyperparams.replay_start_size,
+		test_episodes=hyperparams.test_episodes,
+		network_update_frequency=hyperparams.network_update_frequency,
+		render=False, render_delay=0.03, max_humans=1, max_zombies=1,
+		randomness=False, fine_tune=False, actions="default", environment=None
 	):
+		self._state_sequence_length = state_sequence_length
+		self._training_episodes = training_episodes
+		self._network_update_frequency = network_update_frequency
+		self._frame_skip_rate = frame_skip_rate
+		self._test_episodes = test_episodes
+
+		self._initial_epsilon = initial_epsilon
+		self._final_epsilon = final_epsilon
+		self._epsilon_decay = epsilon_decay
+		self._memory_size = memory_size
+		self._learning_rate = learning_rate
+		self._activation = activation
+		self._gamma = gamma
+		self._hidden_layers = hidden_layers
+		self._batch_size = batch_size
+		self._replay_start_size = replay_start_size
+
 		self._render = render
 		self._render_delay = render_delay
 		if render:
@@ -35,7 +66,17 @@ class Interface:
 		if environment != None else None
 
 	def initialize_agent(self, weights=None):
-		self._agent = Agent(self._input_dim, self._output_dim)
+		self._agent = Agent(
+			state_dim=self._input_dim, action_dim=self._output_dim,
+			initial_epsilon=self._initial_epsilon,
+			final_epsilon=self._final_epsilon,
+			epsilon_decay=self._epsilon_decay, memory_size=self._memory_size,
+			learning_rate=self._learning_rate,
+			state_sequence_length=self._state_sequence_length,
+			activation=self._activation, gamma=self._gamma,
+			hidden_layers=self._hidden_layers, batch_size=self._batch_size,
+			replay_start_size=self._replay_start_size
+		)
 
 		if weights != None:
 			if not isinstance(weights, str):
@@ -71,11 +112,11 @@ class Interface:
 		state = self.get_state()
 
 		if previous_sequence is None:
-			state = np.vstack([state] * hyperparams.state_sequence_length)
+			state = np.vstack([state] * self._state_sequence_length)
 		else:
 			state = np.vstack([
 				state,
-				previous_sequence[0][:hyperparams.state_sequence_length-1]
+				previous_sequence[0][:self._state_sequence_length-1]
 			])
 
 		state = state[np.newaxis, ]
@@ -141,14 +182,13 @@ class Interface:
 
 		if "experimental_network_update_delay" in config:
 			for episode in range(
-				hyperparams.training_episodes //
-				hyperparams.network_update_frequency
+				self._training_episodes // self._network_update_frequency
 			):
-				for observation in range(hyperparams.network_update_frequency):
+				for observation in range(self._network_update_frequency):
 					done = False
 					while not done:
 						if "frame_skip" in config:
-							if current_frame % hyperparams.frame_skip_rate == 0:
+							if current_frame % self._frame_skip_rate == 0:
 								state, done = self.agent_observe(state)
 							else:
 								state, done = self.agent_observe(
@@ -160,7 +200,7 @@ class Interface:
 							state, done = self.agent_observe(state)
 
 						if self._render and\
-						observation+1 == hyperparams.network_update_frequency:
+						observation+1 == self._network_update_frequency:
 							self._renderer.draw_environment(self._env)
 							time.sleep(self._render_delay)
 
@@ -177,7 +217,7 @@ class Interface:
 				sys.stdout.write(
 					"\repisode {}, avg = {:.4f}, eps = {:.4f}"
 					.format(
-						(episode+1)*hyperparams.network_update_frequency,
+						(episode+1)*self._network_update_frequency,
 						average, self._agent._epsilon
 					)
 				)
@@ -189,19 +229,19 @@ class Interface:
 					)
 
 				self._agent.experienced_replay(
-					hyperparams.network_update_frequency
+					self._network_update_frequency
 				)
 				self._agent.save_model(save_file)
 
 		elif "experienced_replay" in config:
 			if "infinite" in config:
 				# hyperparams.final_epsilon_frame = 10000000
-				hyperparams.memory_size = 1000000
-				hyperparams.replay_start_size = 50000
+				# self._memory_size = 1000000
+				# self._replay_start_size = 50000
 
 				while True:
 					if "frame_skip" in config:
-						if current_frame % hyperparams.frame_skip_rate == 0:
+						if current_frame % self._frame_skip_rate == 0:
 							state, done = self.agent_observe(state)
 						else:
 							state, done = self.agent_observe(
@@ -251,11 +291,11 @@ class Interface:
 							self._agent.save_model(save_file)
 
 			else:
-				for episode in range(hyperparams.training_episodes):
+				for episode in range(self._training_episodes):
 					done = False
 					while not done:
 						if "frame_skip" in config:
-							if current_frame % hyperparams.frame_skip_rate == 0:
+							if current_frame % self._frame_skip_rate == 0:
 								state, done = self.agent_observe(state)
 							else:
 								state, done = self.agent_observe(
@@ -306,7 +346,7 @@ class Interface:
 
 	def test_agent(self):
 		total_score = 0.0
-		for episode in range(hyperparams.test_episodes):
+		for episode in range(self._test_episodes):
 			self.initialize_environment()
 			state = self.get_state_sequence()
 			done = False
@@ -316,15 +356,15 @@ class Interface:
 
 			total_score += self._env.score
 
-			if episode % int(hyperparams.test_episodes/100) == 0:
+			if episode % int(self._test_episodes/100) == 0:
 				sys.stdout.write(
 					"\r{:.2f}% complete"
-					.format(episode * 100.0/hyperparams.test_episodes)
+					.format(episode * 100.0/self._test_episodes)
 				)
 				sys.stdout.flush()
 
 		print(
-			"\nAverage score: {}".format(total_score/hyperparams.test_episodes)
+			"\nAverage score: {}".format(total_score/self._test_episodes)
 		)
 
 	def demo_agent(self, episodes=10, infinite=False):
