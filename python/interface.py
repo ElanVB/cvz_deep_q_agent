@@ -49,11 +49,11 @@ class Interface:
 		if self._environment != None:
 			self._env.load_state(self._environment)
 		else:
-			humans = ranom.randrange(1, self._max_humans+1)\
+			humans = random.randrange(1, self._max_humans+1)\
 				if self._randomness\
 				else self._max_humans
 
-			zombies = ranom.randrange(1, self._max_zombies+1)\
+			zombies = random.randrange(1, self._max_zombies+1)\
 				if self._randomness\
 				else self._max_zombies
 
@@ -65,9 +65,20 @@ class Interface:
 			state[:2 + 2 * self._max_humans],
 			state[102:102 + 2 * self._max_zombies]
 		)
-		state = np.vstack([state] * hyperparams.state_sequence_length)
-		state = state[np.newaxis, ]
+		return state
 
+	def get_state_sequence(self, previous_sequence=None):
+		state = self.get_state()
+
+		if previous_sequence is None:
+			state = np.vstack([state] * hyperparams.state_sequence_length)
+		else:
+			state = np.vstack([
+				state,
+				previous_sequence[0][:hyperparams.state_sequence_length-1]
+			])
+
+		state = state[np.newaxis, ]
 		return state
 
 	def update_environment(self, action):
@@ -88,7 +99,7 @@ class Interface:
 		self.update_environment(self._previous_action)
 		done = self._env.is_done()
 		reward = self._env.reward
-		new_state = self.get_state()
+		new_state = self.get_state_sequence(state)
 
 		self._agent.store_frame(
 			state, self._previous_action, reward, new_state, done
@@ -103,7 +114,7 @@ class Interface:
 		action = self._agent.get_action(state, on_policy=True)
 		self.update_environment(action)
 		done = self._env.is_done()
-		new_state = self.get_state()
+		new_state = self.get_state_sequence(state)
 
 		return new_state, done
 
@@ -117,7 +128,7 @@ class Interface:
 
 		episode = 0
 		self.initialize_environment()
-		state = self.get_state()
+		state = self.get_state_sequence()
 
 		if "frame_skip" in config:
 			current_frame = 0
@@ -159,7 +170,7 @@ class Interface:
 
 					self._agent.decay_epsilon()
 					self.initialize_environment()
-					state = self.get_state()
+					state = self.get_state_sequence(state)
 					current_frame = 0
 
 				average = sum(averages)/min(avg_over, len(averages))
@@ -234,7 +245,7 @@ class Interface:
 						self._agent.experienced_replay()
 						self._agent.decay_epsilon()
 						self.initialize_environment()
-						state = self.get_state()
+						state = self.get_state_sequence()
 
 						if episode % 100 == 0:
 							self._agent.save_model(save_file)
@@ -285,7 +296,7 @@ class Interface:
 					self._agent.experienced_replay()
 					self._agent.decay_epsilon()
 					self.initialize_environment()
-					state = self.get_state()
+					state = self.get_state_sequence()
 					current_frame = 0
 
 					if episode % 100 == 0:
@@ -297,7 +308,7 @@ class Interface:
 		total_score = 0.0
 		for episode in range(hyperparams.test_episodes):
 			self.initialize_environment()
-			state = self.get_state()
+			state = self.get_state_sequence()
 			done = False
 
 			while not done:
@@ -316,27 +327,33 @@ class Interface:
 			"\nAverage score: {}".format(total_score/hyperparams.test_episodes)
 		)
 
-	def demo_agent(self, episodes=10):
+	def demo_agent(self, episodes=10, infinite=False):
 		total_score = 0.0
-		renderer = Renderer()
+		renderer = Renderer(window_scale=.75)
+
+		if infinite:
+			episodes = np.iinfo(np.int32).max
 
 		for episode in range(episodes):
 			self.initialize_environment()
-			state = self.get_state()
+			state = self.get_state_sequence()
 			done = False
+			reward = 0
 
 			while not done:
 				state, done = self.agent_on_policy_act(state)
+				reward += self._env.reward
 				renderer.draw_environment(self._env)
 				time.sleep(self._render_delay)
 
 			total_score += self._env.score
 
 			sys.stdout.write(
-				"\r{:.2f}% complete"
-				.format(episode * 100.0/episodes)
+				"\rscore = {:4d}, reward = {:3.2f}"
+				.format(self._env.score, reward)
 			)
 			sys.stdout.flush()
+			time.sleep(1)
 
 		print(
 			"\nAverage score: {}".format(total_score/episodes)
