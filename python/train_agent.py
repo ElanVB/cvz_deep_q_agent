@@ -10,7 +10,6 @@ i = Interface(
 i.train_agent(config=[
 	# "experienced_replay", "track"
 	# "experienced_replay", "track", "frame_skip"
-	"experienced_replay", "track", "experimental_network_update_delay",
-	"frame_skip"
+	"experienced_replay", "experimental_network_update_delay", "frame_skip"
 ])
 i.test_agent()

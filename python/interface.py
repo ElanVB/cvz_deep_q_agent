@@ -174,10 +174,11 @@ class Interface:
 		if "frame_skip" in config:
 			current_frame = 0
 
+		avg_over = 100
+		scores = collections.deque(maxlen=avg_over)
+		averages = collections.deque(maxlen=avg_over)
+
 		if "track" in config:
-			avg_over = 100
-			scores = collections.deque(maxlen=avg_over)
-			averages = collections.deque(maxlen=avg_over)
 			log_filename = "log-" + "-".join(config) + ".txt"
 
 		if "experimental_network_update_delay" in config:
@@ -223,10 +224,11 @@ class Interface:
 				)
 				sys.stdout.flush()
 
-				with open(log_filename, "a") as log_file:
-					log_file.write(
-						",".join(map(str, averages)) + ","
-					)
+				if "track" in config:
+					with open(log_filename, "a") as log_file:
+						log_file.write(
+							",".join(map(str, averages)) + ","
+						)
 
 				self._agent.experienced_replay(
 					self._network_update_frequency
@@ -260,23 +262,23 @@ class Interface:
 						current_frame = 0
 						episode += 1
 
-						if "track" in config:
-							scores.append(self._env.score)
+						scores.append(self._env.score)
 
-							if episode >= avg_over:
-								average = sum(scores)/avg_over
-								averages.append(average)
+						if episode >= avg_over:
+							average = sum(scores)/avg_over
+							averages.append(average)
 
-							if episode % avg_over == 0:
-								average = sum(averages)/avg_over
-								sys.stdout.write(
-									"\repisode {}, avg = {:.4f}, eps = {:.4f}"
-									.format(
-										episode, average, self._agent._epsilon
-									)
+						if episode % avg_over == 0:
+							average = sum(averages)/avg_over
+							sys.stdout.write(
+								"\repisode {}, avg = {:.4f}, eps = {:.4f}"
+								.format(
+									episode, average, self._agent._epsilon
 								)
-								sys.stdout.flush()
+							)
+							sys.stdout.flush()
 
+							if "track" in config:
 								with open(log_filename, "a") as log_file:
 									log_file.write(
 										",".join(map(str, averages)) + ","
@@ -311,27 +313,27 @@ class Interface:
 							time.sleep(self._render_delay)
 
 
-					if "track" in config:
-						scores.append(self._env.score)
+					scores.append(self._env.score)
 
-						if episode >= avg_over:
-							average = sum(scores)/avg_over
-							averages.append(average)
+					if episode >= avg_over:
+						average = sum(scores)/avg_over
+						averages.append(average)
 
-						if max(episode, 1) % avg_over == 0:
-							average = sum(averages)/avg_over
-							sys.stdout.write(
-								"\repisode {}, avg = {:.4f}, eps = {:.4f}"
-								.format(
-									episode, average, self._agent._epsilon
-								)
+					if max(episode, 1) % avg_over == 0:
+						average = sum(averages)/avg_over
+						sys.stdout.write(
+							"\repisode {}, avg = {:.4f}, eps = {:.4f}"
+							.format(
+								episode, average, self._agent._epsilon
 							)
-							sys.stdout.flush()
+						)
+						sys.stdout.flush()
 
-							with open(log_filename, "a") as log_file:
-								log_file.write(
-									",".join(map(str, averages)) + ","
-								)
+					if "track" in config:
+						with open(log_filename, "a") as log_file:
+							log_file.write(
+								",".join(map(str, averages)) + ","
+							)
 
 					self._agent.experienced_replay()
 					self._agent.decay_epsilon()
