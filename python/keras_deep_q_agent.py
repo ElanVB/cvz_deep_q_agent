@@ -56,7 +56,8 @@ class Agent:
 
 	def get_action(self, state, on_policy=False):
 		if not on_policy and np.random.rand() <= self._epsilon:
-			return int(np.random.rand() * self._action_dim)
+			return np.random.randint(self._action_dim)
+			# return int(np.random.rand() * self._action_dim)
 		else:
 			return np.argmax(self._model.predict(state)[0])
 

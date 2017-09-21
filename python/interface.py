@@ -365,9 +365,11 @@ class Interface:
 				)
 				sys.stdout.flush()
 
-		print(
-			"\nAverage score: {}".format(total_score/self._test_episodes)
-		)
+		average_score = total_score/self._test_episodes
+		# print(
+		# 	"\nAverage score: {}".format(average_score)
+		# )
+		return average_score
 
 	def demo_agent(self, episodes=10, infinite=False):
 		total_score = 0.0
