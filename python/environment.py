@@ -44,6 +44,9 @@ class Environment():
 		if better_rewards:
 			self._max_reward = self._round_score(num_humans, num_zombies)
 
+		self._done = False
+		self._round = 0
+
 	def _fibonacci(self, n):
 		if n <= len(self._fibonacci_seq):
 			return self._fibonacci_seq[n-1]
@@ -134,7 +137,7 @@ class Environment():
 			self.reward = -1
 
 	def is_done(self):
-		return len(self.humans) == 0 or len(self.zombies) == 0
+		return self._done or len(self.humans) == 0 or len(self.zombies) == 0
 
 	def update(self, x, y):
 		if not isinstance(x, (int, float)):
@@ -151,6 +154,10 @@ class Environment():
 
 		# if self._better_rewards:
 		# 	self.reward /= self._max_reward
+
+		self._round += 1
+		if self._round >= 200:
+			self._done = True
 
 	def parse_state_file(self, filename):
 		state_file = open(filename, "r")

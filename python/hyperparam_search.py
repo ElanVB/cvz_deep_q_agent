@@ -18,19 +18,18 @@ def paramaters(layers):
 	return np.prod(layers)
 
 def train_and_test_agent(architecture, learning_rate):
-	start = time.time()
-	time.sleep(np.random.rand() * 0.05)
 	i = Interface(
 		learning_rate=learning_rate,
 		# state_sequence_length=hyperparams.state_sequence_length,
 		hidden_layers=architecture,
 		max_humans=1, max_zombies=1
 	)
+	start = time.time()
 	i.train_agent(config=[
 		"experienced_replay", "experimental_network_update_delay", "frame_skip"
 	])
-	score = i.test_agent()
 	time_diff = time.time() - start
+	score = i.test_agent()
 	return score, time_diff
 
 architectures = []
