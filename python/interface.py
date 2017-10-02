@@ -13,6 +13,9 @@ class Interface:
 		epsilon_decay=hyperparams.epsilon_decay,
 		memory_size=hyperparams.memory_size,
 		learning_rate=hyperparams.learning_rate,
+		gradient_momentum=hyperparams.gradient_momentum,
+		squared_gradient_momentum=hyperparams.squared_gradient_momentum,
+		min_squared_gradient=hyperparams.min_squared_gradient,
 		state_sequence_length=hyperparams.state_sequence_length,
 		activation=hyperparams.activation,
 		gamma=hyperparams.gamma,
@@ -35,6 +38,9 @@ class Interface:
 		self._epsilon_decay = epsilon_decay
 		self._memory_size = memory_size
 		self._learning_rate = learning_rate
+		self._gradient_momentum = gradient_momentum
+		self._squared_gradient_momentum = squared_gradient_momentum
+		self._min_squared_gradient = min_squared_gradient
 		self._activation = activation
 		self._gamma = gamma
 		self._hidden_layers = hidden_layers
@@ -72,6 +78,9 @@ class Interface:
 			final_epsilon=self._final_epsilon,
 			epsilon_decay=self._epsilon_decay, memory_size=self._memory_size,
 			learning_rate=self._learning_rate,
+			gradient_momentum=self._gradient_momentum,
+			squared_gradient_momentum=self._squared_gradient_momentum,
+			min_squared_gradient=self._min_squared_gradient,
 			state_sequence_length=self._state_sequence_length,
 			activation=self._activation, gamma=self._gamma,
 			hidden_layers=self._hidden_layers, batch_size=self._batch_size,
