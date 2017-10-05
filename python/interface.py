@@ -12,6 +12,7 @@ class Interface:
 		final_epsilon=hyperparams.final_epsilon,
 		epsilon_decay=hyperparams.epsilon_decay,
 		memory_size=hyperparams.memory_size,
+		optimizer=hyperparams.optimizer,
 		learning_rate=hyperparams.learning_rate,
 		gradient_momentum=hyperparams.gradient_momentum,
 		squared_gradient_momentum=hyperparams.squared_gradient_momentum,
@@ -37,6 +38,7 @@ class Interface:
 		self._final_epsilon = final_epsilon
 		self._epsilon_decay = epsilon_decay
 		self._memory_size = memory_size
+		self._optimizer = optimizer
 		self._learning_rate = learning_rate
 		self._gradient_momentum = gradient_momentum
 		self._squared_gradient_momentum = squared_gradient_momentum
@@ -77,6 +79,7 @@ class Interface:
 			initial_epsilon=self._initial_epsilon,
 			final_epsilon=self._final_epsilon,
 			epsilon_decay=self._epsilon_decay, memory_size=self._memory_size,
+			optimizer=self._optimizer,
 			learning_rate=self._learning_rate,
 			gradient_momentum=self._gradient_momentum,
 			squared_gradient_momentum=self._squared_gradient_momentum,
@@ -168,11 +171,12 @@ class Interface:
 
 		return new_state, done
 
-	def train_agent(self, weights=None, config=[
+	def train_agent(self, save_file=None, weights=None, config=[
 		"experienced_replay", "infinite", "track", "frame_skip",
 		"experimental_network_update_delay"
 	]):
-		save_file = "-".join(config) + ".h5"
+		if save_file == None:
+			save_file = "-".join(config) + ".h5"
 
 		self.initialize_agent(weights)
 

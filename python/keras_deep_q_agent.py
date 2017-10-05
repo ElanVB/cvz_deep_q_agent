@@ -2,13 +2,12 @@ import sys, collections, random
 import numpy as np
 from keras.models import Sequential
 from keras.layers import Dense, Flatten
-from keras.optimizers import RMSprop
-# from keras.optimizers import Nadam
+from keras.optimizers import RMSprop, Nadam, Adam
 
 class Agent:
 	def __init__(
 		self, state_dim, action_dim, initial_epsilon, final_epsilon,
-		epsilon_decay, memory_size, learning_rate, gradient_momentum,
+		epsilon_decay, memory_size, optimizer, learning_rate, gradient_momentum,
 		squared_gradient_momentum, min_squared_gradient, state_sequence_length,
 		activation, gamma, hidden_layers, batch_size, replay_start_size
 	):
@@ -18,7 +17,7 @@ class Agent:
 		self._state_dim = state_dim
 		self._action_dim = action_dim
 		self._model = self._compile_model(
-			state_dim, action_dim, learning_rate, gradient_momentum,
+			state_dim, action_dim, optimizer, learning_rate, gradient_momentum,
 			squared_gradient_momentum, min_squared_gradient,
 			state_sequence_length, activation, hidden_layers
 		)
@@ -29,9 +28,9 @@ class Agent:
 		self._replay_start_size = replay_start_size
 
 	def _compile_model(
-		self, state_dim, action_dim, learning_rate, gradient_momentum,
-		squared_gradient_momentum, min_squared_gradient, state_sequence_length,
-		activation, hidden_layers
+		self, state_dim, action_dim, optimizer, learning_rate,
+		gradient_momentum, squared_gradient_momentum, min_squared_gradient,
+		state_sequence_length, activation, hidden_layers
 	):
 		model = Sequential()
 		model.add(Dense(
@@ -48,8 +47,17 @@ class Agent:
 			))
 
 		model.add(Dense(action_dim, activation='linear'))
-		model.compile(loss='mse', optimizer=RMSprop(lr=learning_rate))
-		# model.compile(loss='mse', optimizer=Nadam(lr=learning_rate))
+
+		if optimizer == "RMSprop":
+			optimizer = RMSprop(lr=learning_rate)
+		elif optimizer == "Adam":
+			optimizer = Adam(lr=learning_rate)
+		elif optimizer == "Nadam":
+			optimizer = Nadam(lr=learning_rate)
+		else:
+			raise ValueError("optimizer not supported")
+
+		model.compile(loss='mse', optimizer=optimizer)
 
 		return model
 
