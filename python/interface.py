@@ -110,7 +110,8 @@ class Interface:
 				if self._randomness\
 				else self._max_zombies
 
-			self._env = Environment(humans, zombies, better_rewards=True)
+			# self._env = Environment(humans, zombies, better_rewards=True)
+			self._env.reset(humans, zombies)
 
 	def get_state(self):
 		state = np.array(self._env.get_state())

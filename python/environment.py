@@ -254,3 +254,40 @@ class Environment():
 				state += self.get_state_variables(self.zombies[i])
 
 		return state
+
+	def reset(self, num_humans=None, num_zombies=None):
+		if num_humans == None:
+			num_humans = len(self.humans)
+
+		if num_zombies == None:
+			num_zombies = len(self.zombies)
+
+		shooter = Entity(
+			randrange(config.WIDTH), randrange(config.HEIGHT),
+			config.SHOOTER_INTERACT_RANGE,
+			config.SHOOTER_MOVE_RANGE
+		)
+
+		humans = dict()
+		for i in range(num_humans):
+			humans[i] = Coord(randrange(config.WIDTH), randrange(config.HEIGHT))
+
+		zombies = dict()
+		for i in range(num_zombies):
+			zombies[i] = Entity(
+				randrange(config.WIDTH), randrange(config.HEIGHT),
+				config.ZOMBIE_INTERACT_RANGE,
+				config.ZOMBIE_MOVE_RANGE
+			)
+
+		self.shooter = shooter
+		self.humans = humans
+		self.zombies = zombies
+		self.score = 0
+		self.reward = 0
+
+		if self._better_rewards:
+			self._max_reward = self._round_score(num_humans, num_zombies)
+
+		self._done = False
+		self._round = 0
