@@ -137,10 +137,13 @@ class Environment():
 			# self.reward = -1
 			live_humans = len(self.humans)
 			num_zombies = len(self.zombies)
-			self.reward = (
+			self.reward = -(
 				self._round_score(live_humans+dead_count, num_zombies) -
 				self._round_score(live_humans, num_zombies)
-			)
+			) / self._max_reward
+
+		if len(self.humans) == 0:
+			self.reward = -1
 
 	def is_done(self):
 		return self._done or len(self.humans) == 0 or len(self.zombies) == 0
@@ -162,7 +165,12 @@ class Environment():
 		# 	self.reward /= self._max_reward
 
 		if self.reward == 0:
-			self.reward = -0.01
+			live_humans = len(self.humans)
+			num_zombies = len(self.zombies)
+			self.reward = -0.1 * (
+				self._round_score(live_humans, num_zombies) -
+				self._round_score(live_humans-1, num_zombies)
+			) / self._max_reward
 
 		self._round += 1
 		if self._round >= 200:
