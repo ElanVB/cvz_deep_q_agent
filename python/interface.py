@@ -24,6 +24,7 @@ class Interface:
 		batch_size=hyperparams.batch_size,
 		replay_start_size=hyperparams.replay_start_size,
 		test_episodes=hyperparams.test_episodes,
+		validate_episodes=hyperparams.validate_episodes,
 		network_update_frequency=hyperparams.network_update_frequency,
 		render=False, render_delay=0.03, max_humans=1, max_zombies=1,
 		randomness=False, fine_tune=False, actions="default", environment=None
@@ -33,6 +34,7 @@ class Interface:
 		self._network_update_frequency = network_update_frequency
 		self._frame_skip_rate = frame_skip_rate
 		self._test_episodes = test_episodes
+		self._validate_episodes = validate_episodes
 
 		self._initial_epsilon = initial_epsilon
 		self._final_epsilon = final_epsilon
@@ -98,7 +100,9 @@ class Interface:
 
 			self._agent.load_weights(weights)
 
-	def initialize_environment(self, num_humans=None, num_zombies=None):
+	def initialize_environment(
+		self, num_humans=None, num_zombies=None, randomness=True
+	):
 		if num_humans == None:
 			num_humans = self._max_humans
 
@@ -108,15 +112,13 @@ class Interface:
 		if self._environment != None:
 			self._env.load_state(self._environment)
 		else:
-			humans = random.randrange(1, num_humans+1)\
-				if self._randomness\
-				else num_humans
+			if randomness and self._randomness:
+				humans = random.randrange(1, num_humans+1)
+				zombies = random.randrange(1, num_zombies+1)
+			else:
+				humans = num_humans
+				zombies = num_zombies
 
-			zombies = random.randrange(1, num_zombies+1)\
-				if self._randomness\
-				else num_zombies
-
-			# self._env = Environment(humans, zombies, better_rewards=True)
 			self._env.reset(humans, zombies)
 
 	def get_state(self):
@@ -238,11 +240,12 @@ class Interface:
 					current_frame = 0
 
 				average = sum(averages)/min(avg_over, len(averages))
+				validation_score = self.validate_agent(num_humans, num_zombies)
 				sys.stdout.write(
-					"\repisode {}, avg = {:.4f}, eps = {:.4f}"
+					"\repisode {}, avg = {:.4f}, val = {:.4f}, eps = {:.4f}"
 					.format(
 						(episode+1)*self._network_update_frequency,
-						average, self._agent._epsilon
+						average, validation_score, self._agent._epsilon
 					)
 				)
 				sys.stdout.flush()
@@ -369,10 +372,25 @@ class Interface:
 
 		self._agent.save_model(save_file)
 
+	def validate_agent(self, num_humans=None, num_zombies=None):
+		total_score = 0.0
+		for episode in range(self._validate_episodes):
+			self.initialize_environment(num_humans, num_zombies, False)
+			state = self.get_state_sequence()
+			done = False
+
+			while not done:
+				state, done = self.agent_on_policy_act(state)
+
+			total_score += self._env.score
+
+		average_score = total_score/self._validate_episodes
+		return average_score
+
 	def test_agent(self, num_humans=None, num_zombies=None):
 		total_score = 0.0
 		for episode in range(self._test_episodes):
-			self.initialize_environment(num_humans, num_zombies)
+			self.initialize_environment(num_humans, num_zombies, False)
 			state = self.get_state_sequence()
 			done = False
 
@@ -389,9 +407,6 @@ class Interface:
 				sys.stdout.flush()
 
 		average_score = total_score/self._test_episodes
-		# print(
-		# 	"\nAverage score: {}".format(average_score)
-		# )
 		return average_score
 
 	def demo_agent(self, episodes=10, infinite=False, num_humans=None, num_zombies=None):
