@@ -103,6 +103,9 @@ class Environment():
 		if self._better_rewards:
 			self.reward /= self._max_reward
 
+		if len(self.zombies) == 0:
+			self.reward = 1
+
 	def _eat_humans(self):
 		if self._better_rewards:
 			dead_count = 0
@@ -258,13 +261,13 @@ class Environment():
 		state = []
 		state += self.get_state_variables(self.shooter)
 
-		for i in range(100):
+		for i in range(99):
 			if i not in self.humans:
 				state += [-1, -1]
 			else:
 				state += self.get_state_variables(self.humans[i])
 
-		for i in range(100):
+		for i in range(99):
 			if i not in self.zombies:
 				state += [-1, -1]
 			else:

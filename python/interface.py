@@ -98,17 +98,23 @@ class Interface:
 
 			self._agent.load_weights(weights)
 
-	def initialize_environment(self):
+	def initialize_environment(self, num_humans=None, num_zombies=None):
+		if num_humans == None:
+			num_humans = self._max_humans
+
+		if num_zombies == None:
+			num_zombies = self._max_zombies
+
 		if self._environment != None:
 			self._env.load_state(self._environment)
 		else:
-			humans = random.randrange(1, self._max_humans+1)\
+			humans = random.randrange(1, num_humans+1)\
 				if self._randomness\
-				else self._max_humans
+				else num_humans
 
-			zombies = random.randrange(1, self._max_zombies+1)\
+			zombies = random.randrange(1, num_zombies+1)\
 				if self._randomness\
-				else self._max_zombies
+				else num_zombies
 
 			# self._env = Environment(humans, zombies, better_rewards=True)
 			self._env.reset(humans, zombies)
@@ -116,8 +122,8 @@ class Interface:
 	def get_state(self):
 		state = np.array(self._env.get_state())
 		state = np.append(
-			state[:2 + 2 * self._max_humans],
-			state[102:102 + 2 * self._max_zombies]
+			state[:(2 + 2 * self._max_humans)],
+			state[200:(200 + 2 * self._max_zombies)]
 		)
 		return state
 
@@ -172,17 +178,20 @@ class Interface:
 
 		return new_state, done
 
-	def train_agent(self, save_file=None, weights=None, config=[
-		"experienced_replay", "infinite", "track", "frame_skip",
-		"experimental_network_update_delay"
-	]):
+	def train_agent(
+		self, save_file=None, weights=None, num_humans=None, num_zombies=None,
+		config=[
+			"experienced_replay", "infinite", "track", "frame_skip",
+			"experimental_network_update_delay"
+		]
+	):
 		if save_file == None:
 			save_file = "-".join(config) + ".h5"
 
 		self.initialize_agent(weights)
 
 		episode = 0
-		self.initialize_environment()
+		self.initialize_environment(num_humans, num_zombies)
 		state = self.get_state_sequence()
 
 		if "frame_skip" in config:
@@ -224,7 +233,7 @@ class Interface:
 					averages.append(average)
 
 					self._agent.decay_epsilon()
-					self.initialize_environment()
+					self.initialize_environment(num_humans, num_zombies)
 					state = self.get_state_sequence(state)
 					current_frame = 0
 
@@ -300,7 +309,7 @@ class Interface:
 
 						self._agent.experienced_replay()
 						self._agent.decay_epsilon()
-						self.initialize_environment()
+						self.initialize_environment(num_humans, num_zombies)
 						state = self.get_state_sequence()
 
 						if episode % 100 == 0:
@@ -351,7 +360,7 @@ class Interface:
 
 					self._agent.experienced_replay()
 					self._agent.decay_epsilon()
-					self.initialize_environment()
+					self.initialize_environment(num_humans, num_zombies)
 					state = self.get_state_sequence()
 					current_frame = 0
 
@@ -360,10 +369,10 @@ class Interface:
 
 		self._agent.save_model(save_file)
 
-	def test_agent(self):
+	def test_agent(self, num_humans=None, num_zombies=None):
 		total_score = 0.0
 		for episode in range(self._test_episodes):
-			self.initialize_environment()
+			self.initialize_environment(num_humans, num_zombies)
 			state = self.get_state_sequence()
 			done = False
 
@@ -385,7 +394,7 @@ class Interface:
 		# )
 		return average_score
 
-	def demo_agent(self, episodes=10, infinite=False):
+	def demo_agent(self, episodes=10, infinite=False, num_humans=None, num_zombies=None):
 		total_score = 0.0
 		renderer = Renderer(window_scale=.75)
 
@@ -393,7 +402,7 @@ class Interface:
 			episodes = np.iinfo(np.int32).max
 
 		for episode in range(episodes):
-			self.initialize_environment()
+			self.initialize_environment(num_humans, num_zombies)
 			state = self.get_state_sequence()
 			done = False
 			reward = 0
