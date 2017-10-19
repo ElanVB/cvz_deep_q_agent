@@ -2,8 +2,8 @@ from interface import Interface
 import numpy as np, time, sys
 
 learning_rate_scans = 3
-learning_rate_segments = 5 + 2
-max_params = 1e6
+learning_rate_segments = 3 + 2
+# max_params = 1e6
 architecture_checks = 20
 layer_sizes = (8, 16, 32, 64, 128, 256, 512, 1024)
 optimizer = sys.argv[1]
@@ -25,7 +25,7 @@ def train_and_test_agent(architecture, learning_rate):
 		learning_rate=learning_rate,
 		# state_sequence_length=hyperparams.state_sequence_length,
 		hidden_layers=architecture,
-		max_humans=1, max_zombies=1
+		max_humans=3, max_zombies=3
 	)
 	start = time.time()
 	i.train_agent(save_file="{}.h5".format(optimizer), config=[
@@ -36,7 +36,7 @@ def train_and_test_agent(architecture, learning_rate):
 	return score, time_diff
 
 architectures = [
-	(8,), (16,), (1024,), (512, 64), (256, 32, 16), (128, 64, 32),
+	(32,), (512,), (256, 128), (512, 64), (256, 32, 16), (128, 64, 32),
 	(1024, 64, 32), (256, 64, 32, 8, 8), (1024, 512, 16, 16),
 	(512, 256, 32, 32), (1024, 512, 128, 8), (512, 64, 64, 32, 32),
 	(512, 512, 256, 64), (512, 256, 256, 64, 16), (1024, 256, 256, 32, 16, 16),
@@ -57,7 +57,7 @@ architectures = [
 architecture = architectures[architecture_index]
 
 scores = np.array([])
-learning_rates = np.array([10 ** -i for i in range(1, 8)])
+learning_rates = np.array([10 ** -i for i in range(2, 5)])
 
 for lr in learning_rates:
 	score, time_diff = train_and_test_agent(
@@ -77,12 +77,18 @@ scores = scores[top_2]
 top_2 = np.argsort(scores)[-2:]
 
 for seg in range(learning_rate_scans):
+	# for lr in np.logspace(
+	# 	np.log10(learning_rates[top_2[0]]),
+	# 	np.log10(learning_rates[top_2[1]]),
+	# 	learning_rate_segments,
+	# 	endpoint=True
+	# )[1:-1]:
 	for lr in np.logspace(
-		np.log10(learning_rates[top_2[0]]),
-		np.log10(learning_rates[top_2[1]]),
+		np.log10(learning_rates[top_2[0]]/5),
+		np.log10(learning_rates[top_2[1]]*5),
 		learning_rate_segments,
 		endpoint=True
-	)[1:-1]:
+	):
 		learning_rates = np.append(learning_rates, lr)
 		score, time_diff = train_and_test_agent(
 			architecture=architecture, learning_rate=lr
