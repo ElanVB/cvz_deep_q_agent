@@ -64,7 +64,21 @@ class Interface:
 		if actions == "default":
 			self._points = [(0, 0), (16000, 0), (0, 9000), (16000, 9000)]
 			self._output_dim = len(self._points)
-			# self._output_dim = len(self._points)+1 # plus one for no-op
+		elif actions == "default+static":
+			self._points = [(0, 0), (16000, 0), (0, 9000), (16000, 9000)]
+			self._output_dim = len(self._points)+1 # plus one for no-op
+		elif actions == "larger":
+			self._points = [
+				(0, 0), (0, 4500), (16000, 0), (8000, 0), (8000, 9000),
+				(0, 9000), (16000, 4500), (16000, 9000)
+			]
+			self._output_dim = len(self._points)
+		elif actions == "larger+static":
+			self._points = [
+				(0, 0), (0, 4500), (16000, 0), (8000, 0), (8000, 9000),
+				(0, 9000), (16000, 4500), (16000, 9000)
+			]
+			self._output_dim = len(self._points)+1 # plus one for no-op
 		else:
 			raise ValueError("action value not supported")
 
@@ -145,11 +159,11 @@ class Interface:
 
 	def update_environment(self, action):
 		# This must change if more action types are supported
-		# if action < len(self._points):
-		# 	self._env.update(self._points[action][0], self._points[action][1])
-		# else:
-		# 	self._env.update(self._env.shooter.x, self._env.shooter.y)
-		self._env.update(self._points[action][0], self._points[action][1])
+		if action < len(self._points):
+			self._env.update(self._points[action][0], self._points[action][1])
+		else:
+			self._env.update(self._env.shooter.x, self._env.shooter.y)
+		# self._env.update(self._points[action][0], self._points[action][1])
 
 	def agent_observe(
 		self, state, epsilon_decay=False, use_previous_action=False
