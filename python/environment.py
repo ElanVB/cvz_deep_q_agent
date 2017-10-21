@@ -247,6 +247,8 @@ class Environment():
 		self.zombies = zombies
 		self.score = 0
 		self.reward = 0
+		self._done = False
+		self._round = 0
 
 		if self._better_rewards:
 			self._max_reward = self._round_score(len(humans), len(zombies))
