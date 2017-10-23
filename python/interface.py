@@ -194,233 +194,135 @@ class Interface:
 
 		return new_state, done
 
+	def log(self, filename, data):
+	    filename += ".log"
+	    with open(filename, "a") as log_file:
+	        log_file.write(",".join(map(str, data)) + ",")
+
+	def print_update(self, episode, validation_score):
+	    sys.stdout.write(
+	        "\repisode {}, val = {:.4f}, eps = {:.4f}"
+	            .format(episode, validation_score, self._agent._epsilon)
+	    )
+	    sys.stdout.flush()
+
+	def frame_skip_observe(self, current_frame, state):
+	    if current_frame % self._frame_skip_rate == 0:
+	        state, done = self.agent_observe(state)
+	    else:
+	        state, done = self.agent_observe(state, use_previous_action=True)
+
+	    current_frame += 1
+
+	    return state, done, current_frame
+
+	def render(self):
+	    self._renderer.draw_environment(self._env)
+	    time.sleep(self._render_delay)
+
+	def reset_episode(self, num_humans, num_zombies, randomness=True):
+	    randomness = randomness and self._randomness
+	    self.initialize_environment(num_humans, num_zombies, randomness)
+	    state = self.get_state_sequence()
+	    current_frame = 0
+	    return state, current_frame
+
+	def play_episode(self, num_humans, num_zombies, frame_skip=True, experienced_replay=True, replay_batches=1):
+	    state, current_frame = self.reset_episode(num_humans, num_zombies)
+	    done = False
+
+	    while not done:
+	        if frame_skip:
+	            state, done, current_frame =\
+	                self.frame_skip_observe(current_frame, state)
+	        else:
+	            state, done = self.agent_observe(state)
+
+	    self._agent.decay_epsilon()
+	    if experienced_replay:
+	        self._agent.experienced_replay(replay_batches)
+
+	def check_point(self, episode, num_humans, num_zombies, save_file, log=False):
+	    validation_score =\
+	        self.test_agent(num_humans, num_zombies, validate=True)
+	    self.print_update(episode, validation_score)
+	    self._agent.save_model(save_file)
+	    if log:
+	        self.log(save_file, [validation_score])
+
 	def train_agent(
-		self, save_file=None, weights=None, num_humans=None, num_zombies=None,
-		config=[
-			"experienced_replay", "infinite", "track", "frame_skip",
-			"experimental_network_update_delay"
-		]
+	    self, save_file=None, weights=None, num_humans=None, num_zombies=None,
+	    config=[
+	        "experienced_replay", "infinite", "log", "frame_skip",
+	        "experimental_network_update_delay"
+	    ]
 	):
-		if save_file == None:
-			save_file = "-".join(config) + ".h5"
+	    if save_file == None:
+	        save_file = "-".join(config)
 
-		self.initialize_agent(weights)
+	    self.initialize_agent(weights)
 
-		episode = 0
-		self.initialize_environment(num_humans, num_zombies)
-		state = self.get_state_sequence()
+	    if "experimental_network_update_delay" in config:
+	        for episode in range(
+	            self._training_episodes // self._network_update_frequency
+	        ):
+	            for observation in range(self._network_update_frequency):
+	                self.play_episode(
+						num_humans, num_zombies, "frame_skip" in config,
+	                    experienced_replay=(observation+1 == self._network_update_frequency),
+	                    replay_batches=self._network_update_frequency
+	                )
 
-		if "frame_skip" in config:
-			current_frame = 0
+	            self.check_point(
+	                (episode+1)*self._network_update_frequency,
+	                num_humans, num_zombies, save_file, log=("log" in config)
+	            )
+	    elif "experienced_replay" in config:
+	        if "infinite" in config:
+	            episode = 0
+	            while True:
+	                self.play_episode(num_humans, num_zombies, "frame_skip" in config)
 
-		avg_over = 100
-		scores = collections.deque(maxlen=avg_over)
-		averages = collections.deque(maxlen=avg_over)
+	                episode += 1
+	                if episode % 100 == 0:
+	                    self.check_point(
+	                        episode, num_humans, num_zombies, save_file,
+	                        log=("log" in config)
+	                    )
+	        else:
+	            for episode in range(self._training_episodes):
+	                self.play_episode(num_humans, num_zombies, "frame_skip" in config)
 
-		if "track" in config:
-			log_filename = "log-" + "-".join(config) + ".txt"
+	                if episode % 100 == 0:
+	                    self.check_point(
+	                        episode, num_humans, num_zombies, save_file,
+	                        log=("log" in config)
+	                    )
+	    else:
+	        raise ValueError("config is not valid")
 
-		if "experimental_network_update_delay" in config:
-			for episode in range(
-				self._training_episodes // self._network_update_frequency
-			):
-				for observation in range(self._network_update_frequency):
-					done = False
-					while not done:
-						if "frame_skip" in config:
-							if current_frame % self._frame_skip_rate == 0:
-								state, done = self.agent_observe(state)
-							else:
-								state, done = self.agent_observe(
-									state, use_previous_action=True
-								)
+	    self.check_point(
+	        "FINAL", num_humans, num_zombies, save_file,
+	        log=("log" in config)
+	    )
 
-							current_frame += 1
-						else:
-							state, done = self.agent_observe(state)
-
-						if self._render and\
-						observation+1 == self._network_update_frequency:
-							self._renderer.draw_environment(self._env)
-							time.sleep(self._render_delay)
-
-					scores.append(self._env.score)
-					average = sum(scores)/min(avg_over, len(scores))
-					averages.append(average)
-
-					self._agent.decay_epsilon()
-					self.initialize_environment(num_humans, num_zombies)
-					state = self.get_state_sequence(state)
-					current_frame = 0
-
-				average = sum(averages)/min(avg_over, len(averages))
-				validation_score = self.validate_agent(num_humans, num_zombies)
-				sys.stdout.write(
-					"\repisode {}, avg = {:.4f}, val = {:.4f}, eps = {:.4f}"
-					.format(
-						(episode+1)*self._network_update_frequency,
-						average, validation_score, self._agent._epsilon
-					)
-				)
-				sys.stdout.flush()
-
-				if "track" in config:
-					with open(log_filename, "a") as log_file:
-						log_file.write(
-							",".join(map(str, averages)) + ","
-						)
-
-				self._agent.experienced_replay(
-					self._network_update_frequency
-				)
-				self._agent.save_model(save_file)
-
-		elif "experienced_replay" in config:
-			if "infinite" in config:
-				# hyperparams.final_epsilon_frame = 10000000
-				# self._memory_size = 1000000
-				# self._replay_start_size = 50000
-
-				while True:
-					if "frame_skip" in config:
-						if current_frame % self._frame_skip_rate == 0:
-							state, done = self.agent_observe(state)
-						else:
-							state, done = self.agent_observe(
-								state, use_previous_action=True
-							)
-
-						current_frame += 1
-					else:
-						state, done = self.agent_observe(state)
-
-					if self._render and episode % 20 == 0:
-						self._renderer.draw_environment(self._env)
-						time.sleep(self._render_delay)
-
-					if done:
-						current_frame = 0
-						episode += 1
-
-						scores.append(self._env.score)
-
-						if episode >= avg_over:
-							average = sum(scores)/avg_over
-							averages.append(average)
-
-						if episode % avg_over == 0:
-							average = sum(averages)/avg_over
-							sys.stdout.write(
-								"\repisode {}, avg = {:.4f}, eps = {:.4f}"
-								.format(
-									episode, average, self._agent._epsilon
-								)
-							)
-							sys.stdout.flush()
-
-							if "track" in config:
-								with open(log_filename, "a") as log_file:
-									log_file.write(
-										",".join(map(str, averages)) + ","
-									)
-
-						self._agent.experienced_replay()
-						self._agent.decay_epsilon()
-						self.initialize_environment(num_humans, num_zombies)
-						state = self.get_state_sequence()
-
-						if episode % 100 == 0:
-							self._agent.save_model(save_file)
-
-			else:
-				for episode in range(self._training_episodes):
-					done = False
-					while not done:
-						if "frame_skip" in config:
-							if current_frame % self._frame_skip_rate == 0:
-								state, done = self.agent_observe(state)
-							else:
-								state, done = self.agent_observe(
-									state, use_previous_action=True
-								)
-
-							current_frame += 1
-						else:
-							state, done = self.agent_observe(state)
-
-						if self._render and episode % 20 == 0:
-							self._renderer.draw_environment(self._env)
-							time.sleep(self._render_delay)
-
-
-					scores.append(self._env.score)
-
-					if episode >= avg_over:
-						average = sum(scores)/avg_over
-						averages.append(average)
-
-					if max(episode, 1) % avg_over == 0:
-						average = sum(averages)/avg_over
-						sys.stdout.write(
-							"\repisode {}, avg = {:.4f}, eps = {:.4f}"
-							.format(
-								episode, average, self._agent._epsilon
-							)
-						)
-						sys.stdout.flush()
-
-					if "track" in config:
-						with open(log_filename, "a") as log_file:
-							log_file.write(
-								",".join(map(str, averages)) + ","
-							)
-
-					self._agent.experienced_replay()
-					self._agent.decay_epsilon()
-					self.initialize_environment(num_humans, num_zombies)
-					state = self.get_state_sequence()
-					current_frame = 0
-
-					if episode % 100 == 0:
-						self._agent.save_model(save_file)
-
-		self._agent.save_model(save_file)
-
-	def validate_agent(self, num_humans=None, num_zombies=None):
+	def test_agent(self, num_humans=None, num_zombies=None, validate=False):
 		total_score = 0.0
-		for episode in range(self._validate_episodes):
-			self.initialize_environment(num_humans, num_zombies, False)
-			state = self.get_state_sequence()
+		end_episode = self._validate_episodes if validate else self._test_episodes
+
+		for episode in range(end_episode):
+			state, _ = self.reset_episode(num_humans, num_zombies, randomness=False)
 			done = False
 
 			while not done:
 				state, done = self.agent_on_policy_act(state)
 
-			total_score += self._env.score
-
-		average_score = total_score/self._validate_episodes
-		return average_score
-
-	def test_agent(self, num_humans=None, num_zombies=None):
-		total_score = 0.0
-		for episode in range(self._test_episodes):
-			self.initialize_environment(num_humans, num_zombies, False)
-			state = self.get_state_sequence()
-			done = False
-
-			while not done:
-				state, done = self.agent_on_policy_act(state)
+				if self._render and validate and episode+1 == end_episode:
+					self.render()
 
 			total_score += self._env.score
 
-			if episode % int(self._test_episodes/100) == 0:
-				sys.stdout.write(
-					"\r{:.2f}% complete"
-					.format(episode * 100.0/self._test_episodes)
-				)
-				sys.stdout.flush()
-
-		average_score = total_score/self._test_episodes
+		average_score = total_score/end_episode
 		return average_score
 
 	def demo_agent(self, episodes=10, infinite=False, num_humans=None, num_zombies=None):

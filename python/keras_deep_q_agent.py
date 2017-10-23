@@ -62,6 +62,8 @@ class Agent:
 		return model
 
 	def save_model(self, filename="keras_dqn.h5"):
+		if ".h5" not in filename:
+			filename += ".h5"
 		self._model.save(filename)
 
 	def load_weights(self, filename="keras_dqn.h5"):
