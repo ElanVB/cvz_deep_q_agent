@@ -128,6 +128,8 @@ class Agent:
 				# self._input_memory, self._target_memory,
 				np.array(self._input_memory)[-batches*self._batch_size:],
 				np.array(self._target_memory)[-batches*self._batch_size:],
+				# np.array(self._input_memory),
+				# np.array(self._target_memory),
 				batch_size=self._batch_size,
 				epochs=1, verbose=0
 				# , shuffle=False # slightly better result with 10-20s time increase
