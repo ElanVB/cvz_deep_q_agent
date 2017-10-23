@@ -254,7 +254,7 @@ class Interface:
 	    self, save_file=None, weights=None, num_humans=None, num_zombies=None,
 		check_point_frequency=100,
 		config=[
-	        "experienced_replay", "infinite", "log", "frame_skip",
+	        "experienced_replay", "log", "frame_skip", #"infinite"
 	        "experimental_network_update_delay"
 	    ]
 	):
