@@ -1,4 +1,4 @@
-training_episodes = 5000
+training_episodes = 35000
 test_episodes = 1000
 validate_episodes = 100
 training_frames = 10000
