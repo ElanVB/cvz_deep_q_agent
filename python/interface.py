@@ -114,6 +114,35 @@ class Interface:
 
 			self._agent.load_weights(weights)
 
+	def initialize_target_agent(self, weights=None):
+		self._target_agent = Agent(
+			state_dim=self._input_dim, action_dim=self._output_dim,
+			initial_epsilon=self._initial_epsilon,
+			final_epsilon=self._final_epsilon,
+			epsilon_decay=self._epsilon_decay, memory_size=self._memory_size,
+			optimizer=self._optimizer,
+			learning_rate=self._learning_rate,
+			gradient_momentum=self._gradient_momentum,
+			squared_gradient_momentum=self._squared_gradient_momentum,
+			min_squared_gradient=self._min_squared_gradient,
+			state_sequence_length=self._state_sequence_length,
+			activation=self._activation, gamma=self._gamma,
+			hidden_layers=self._hidden_layers, batch_size=self._batch_size,
+			replay_start_size=self._replay_start_size
+		)
+
+		if weights != None:
+			if not isinstance(weights, str):
+				raise TypeError(
+					"weights must be a string path to your weights file"
+				)
+
+			self._target_agent.load_weights(weights)
+
+	def copy_target_to_prediction_agent(self):
+		self._target_agent.save_model("temp")
+		self._agent.load_weights("temp")
+
 	def initialize_environment(
 		self, num_humans=None, num_zombies=None, randomness=True
 	):
@@ -227,7 +256,10 @@ class Interface:
 	    current_frame = 0
 	    return state, current_frame
 
-	def play_episode(self, num_humans, num_zombies, frame_skip=True, experienced_replay=True, replay_batches=1):
+	def play_episode(
+		self, num_humans, num_zombies, frame_skip=True, experienced_replay=True,
+		replay_batches=1, update_target_network=False
+	):
 	    state, current_frame = self.reset_episode(num_humans, num_zombies)
 	    done = False
 
@@ -240,7 +272,12 @@ class Interface:
 
 	    self._agent.decay_epsilon()
 	    if experienced_replay:
-	        self._agent.experienced_replay(replay_batches)
+	    	if update_target_network:
+	    	    self._target_agent._input_memory = self._agent._input_memory#.copy()
+	    	    self._target_agent._target_memory = self._agent._target_memory#.copy()
+	    	    self._target_agent.experienced_replay(replay_batches)
+	    	else:
+	    	    self._agent.experienced_replay(replay_batches)
 
 	def check_point(self, episode, num_humans, num_zombies, save_file, log=False):
 	    validation_score =\
@@ -263,7 +300,21 @@ class Interface:
 
 	    self.initialize_agent(weights)
 
-	    if "experimental_network_update_delay" in config:
+	    if "network_update_delay" in config:
+	        self.initialize_target_agent(weights)
+	        for episode in range(self._training_episodes):
+	            self.play_episode(
+	                num_humans, num_zombies, "frame_skip" in config,
+	                experienced_replay=True, replay_batches=1, update_target_network=True
+	            )
+
+	            if episode % self._network_update_frequency == 0:
+	                self.copy_target_to_prediction_agent()
+	                self.check_point(
+						episode, num_humans, num_zombies, save_file,
+						log=("log" in config)
+					)
+	    elif "experimental_network_update_delay" in config:
 	        for episode in range(
 	            self._training_episodes // self._network_update_frequency
 	        ):
