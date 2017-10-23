@@ -2,14 +2,14 @@ from interface import Interface
 import hyperparams
 
 i = Interface(
-	learning_rate=hyperparams.learning_rate,
-	state_sequence_length=hyperparams.state_sequence_length,
-	hidden_layers=hyperparams.hidden_layers,
-	max_humans=1, max_zombies=1
+	learning_rate=0.001,
+	hidden_layers=(1024, 512, 128, 128, 128, 64),
+	max_humans=1, max_zombies=1, randomness=True, render=True
 )
-i.train_agent(config=[
-	# "experienced_replay", "track"
-	# "experienced_replay", "track", "frame_skip"
-	"experienced_replay", "experimental_network_update_delay", "frame_skip"
+i.train_agent(save_file="1_5k_online", config=[
+	"experienced_replay",
+	# "experimental_network_update_delay",
+	"frame_skip"
 ])
-i.test_agent()
+
+print("\nTest Score: {}\n".format(i.test_agent()))

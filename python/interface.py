@@ -252,7 +252,8 @@ class Interface:
 
 	def train_agent(
 	    self, save_file=None, weights=None, num_humans=None, num_zombies=None,
-	    config=[
+		check_point_frequency=100,
+		config=[
 	        "experienced_replay", "infinite", "log", "frame_skip",
 	        "experimental_network_update_delay"
 	    ]
@@ -284,7 +285,7 @@ class Interface:
 	                self.play_episode(num_humans, num_zombies, "frame_skip" in config)
 
 	                episode += 1
-	                if episode % 100 == 0:
+	                if episode % check_point_frequency == 0:
 	                    self.check_point(
 	                        episode, num_humans, num_zombies, save_file,
 	                        log=("log" in config)
@@ -293,7 +294,7 @@ class Interface:
 	            for episode in range(self._training_episodes):
 	                self.play_episode(num_humans, num_zombies, "frame_skip" in config)
 
-	                if episode % 100 == 0:
+	                if episode % check_point_frequency == 0:
 	                    self.check_point(
 	                        episode, num_humans, num_zombies, save_file,
 	                        log=("log" in config)
