@@ -8,7 +8,7 @@ i = Interface(
 )
 i.train_agent(save_file="1_5k_online", config=[
 	"experienced_replay",
-	# "experimental_network_update_delay",
+	"experimental_network_update_delay",
 	"frame_skip"
 ])
 
