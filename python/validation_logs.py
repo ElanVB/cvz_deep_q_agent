@@ -27,7 +27,8 @@ def train_and_test_agent(architecture, learning_rate, test_index):
         save_file="{}/{}_{}".format(test_type, architecture, test_index),
         config=[
             "experienced_replay",
-            "experimental_network_update_delay",
+            "network_update_delay",
+            # "target_network_update_delay"
             "frame_skip",
             "log"
 	    ]

@@ -292,7 +292,7 @@ class Interface:
 		check_point_frequency=100,
 		config=[
 	        "experienced_replay", "log", "frame_skip", #"infinite"
-	        "experimental_network_update_delay"
+	        "network_update_delay"
 	    ]
 	):
 	    if save_file == None:
@@ -300,7 +300,7 @@ class Interface:
 
 	    self.initialize_agent(weights)
 
-	    if "network_update_delay" in config:
+	    if "target_network_update_delay" in config:
 	        self.initialize_target_agent(weights)
 	        for episode in range(self._training_episodes):
 	            self.play_episode(
@@ -314,7 +314,7 @@ class Interface:
 						episode, num_humans, num_zombies, save_file,
 						log=("log" in config)
 					)
-	    elif "experimental_network_update_delay" in config:
+	    elif "network_update_delay" in config:
 	        for episode in range(
 	            self._training_episodes // self._network_update_frequency
 	        ):

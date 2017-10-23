@@ -20,7 +20,7 @@ def train_and_test_agent(architecture, learning_rate, action_set):
 	)
 	start = time.time()
 	i.train_agent(save_file="{}.h5".format(optimizer), config=[
-		"experienced_replay", "experimental_network_update_delay", "frame_skip"
+		"experienced_replay", "network_update_delay", "frame_skip"
 	])
 	time_diff = time.time() - start
 	score = i.test_agent()
