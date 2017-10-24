@@ -1,7 +1,7 @@
 import numpy as np, glob, os
 from matplotlib import pyplot as plt
 
-plot_type = "validation"
+plot_type = "validation_large_sample"
 try:
     os.mkdir("{}/plots".format(plot_type))
 except FileExistsError:
@@ -30,7 +30,7 @@ def plot_save(x, y, title, x_axis='Episode', y_axis='Score',
     plt.axis([x_start, x_end, y_start, y_end])
     plt.savefig(name, dpi=300)
 
-def plot_save_multi(Y, title, x_axis='Episode', y_axis='Score',
+def plot_save_multi(Y, title, random=None, approx_optimal=None, x_axis='Episode', y_axis='Score',
     x_start=None, x_end=None, y_start=None, y_end=None,
     name="test"):
     if ".png" not in name:
@@ -63,6 +63,21 @@ def plot_save_multi(Y, title, x_axis='Episode', y_axis='Score',
             y_start = np.min([y.min(), y_start])
         if y_end_tune:
             y_end = np.max([y.max(), y_end])
+
+    if random != None:
+        y = np.array([random]*x.size)
+        if y_start_tune:
+            y_start = np.min([y.min(), y_start])
+        if y_end_tune:
+            y_end = np.max([y.max(), y_end])
+        plt.plot(x, y, linestyle="--", color="red", label="random")
+    if approx_optimal != None:
+        y = np.array([approx_optimal]*x.size)
+        if y_start_tune:
+            y_start = np.min([y.min(), y_start])
+        if y_end_tune:
+            y_end = np.max([y.max(), y_end]) * 1.1
+        plt.plot(x, y, linestyle="--", color="green", label="approx_optimal")
 
     plt.title(title)
     plt.xlabel(x_axis)
@@ -115,7 +130,13 @@ for architecture in Y:
     Y[architecture]["data"] = Y[architecture]["data"] / Y[architecture]["count"]
     plot_save(Y[architecture]["x"], Y[architecture]["data"], architecture, name="./{}/plots/{}".format(plot_type, architecture))
 
-plot_save_multi(Y, "Variation Scores for Multiple Architectures", name="./{}/plots/multi".format(plot_type))
+with open("{}/random.txt".format(plot_type)) as _file:
+    random = float(_file.read().strip())
+
+with open("{}/approx_optimal.txt".format(plot_type)) as _file:
+    approx_optimal = float(_file.read().strip())
+
+plot_save_multi(Y, "Validation Scores for Multiple Architectures", random, approx_optimal, name="./{}/plots/multi".format(plot_type))
 
 # plot_save(x, y, "Validation Score versus Episodes for Network 1")
 # plot_show(x, y, "Validation Score versus Episodes for Network 1")
