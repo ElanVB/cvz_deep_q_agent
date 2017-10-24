@@ -3,6 +3,7 @@ import numpy as np, time, sys, pickle, os
 
 repetitions = 1
 arch_index = int(sys.argv[1])
+dim_index = int(sys.argv[2])
 test_type = "state_dim"
 try:
     os.mkdir(test_type)
@@ -61,9 +62,10 @@ network = networks[arch_index]
 architecture = network["arch"]
 lr = network["lr"]
 
-for dim in [1, 9, 19, 29, 39, 49, 59, 69, 79, 89, 99]:
-    for index in range(repetitions):
-        score, time_diff = train_and_test_agent(
-    		architecture=architecture, learning_rate=lr, dim=dim, test_index=index
-    	)
-        save_file(architecture, lr, dim, score, time_diff)
+dims = [1, 9, 19, 29, 39, 49, 59, 69, 79, 89, 99]
+dim = dims[dim_index]
+for index in range(repetitions):
+    score, time_diff = train_and_test_agent(
+		architecture=architecture, learning_rate=lr, dim=dim, test_index=index
+	)
+    save_file(architecture, lr, dim, score, time_diff)
