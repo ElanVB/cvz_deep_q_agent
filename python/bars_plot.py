@@ -1,7 +1,8 @@
 import numpy as np, glob, os
 from matplotlib import pyplot as plt
 
-plot_type = "networks"
+# plot_type = "networks"
+plot_type = "validation_large_sample"
 try:
     os.mkdir("{}/plots".format(plot_type))
 except FileExistsError:
@@ -16,6 +17,8 @@ def plot_save_multi(Y, title, item, x_axis='Score',
     if x_end == None:
         x_end_tune = True
         x_end = np.finfo(float).min
+
+    plt.figure()
 
     data = []
     architectures = []
