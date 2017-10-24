@@ -97,41 +97,26 @@ class Agent:
 		if self._epsilon > self._final_epsilon:
 			self._epsilon -= self._epsilon_decay
 
-	def experienced_replay(self, batches=1):
+	def experienced_replay(self, batches=1, replay_type="full"):
 		if len(self._input_memory) >= self._batch_size and\
 		len(self._input_memory) >= self._replay_start_size:
-			# sample_indexes = np.random.choice(
-			# 	len(self._memory), size=hyperparams.batch_size * batches
-			# )
-			# sample = collections.deque()
-			# for sample_i in sample_indexes:
-			# 	sample.append(self._memory[sample_i])
-			#
-			# # sample = np.array(self._memory)[sample_indexes]
+			if replay_type == "random":
+				sample_indexes = np.random.choice(
+					len(self._input_memory), size=self._batch_size*batches
+				)
+				inputs = np.array(self._input_memory)[sample_indexes]
+				targets = np.array(self._target_memory)[sample_indexes]
+			elif replay_type == "truncated":
+				inputs = np.array(self._input_memory)[-batches*self._batch_size:]
+				targets = np.array(self._target_memory)[-batches*self._batch_size:]
+			elif replay_type == "full":
+				inputs = np.array(self._input_memory)
+				targets = np.array(self._target_memory)
+			else:
+				raise ValueError("invaild replay type")
 
-			# sample_count = 0
-			# for state, action, reward, new_state, done in self._memory:
-			# # for state, action, reward, new_state, done in sample:
-			# 	target = reward
-			# 	if not done:
-			# 		target += (
-			# 			hyperparams.gamma *
-			# 			np.amax(self._model.predict(new_state)[0])
-			# 		)
-			#
-			# 	prev_target = self._model.predict(state)[0]
-			# 	new_target = prev_target
-			# 	new_target[action] = target
-			#
-			# 	inputs[sample_count] = state
-			# 	targets[sample_count] = new_target
-			# 	sample_count += 1
 			self._model.fit(
-				# self._input_memory, self._target_memory,
-				np.array(self._input_memory)[-batches*self._batch_size:],
-				np.array(self._target_memory)[-batches*self._batch_size:],
-				# np.array(self._input_memory),
-				# np.array(self._target_memory),
+				inputs, targets,
 				batch_size=self._batch_size,
 				epochs=1, verbose=0
 				# , shuffle=False # slightly better result with 10-20s time increase

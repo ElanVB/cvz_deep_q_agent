@@ -258,7 +258,7 @@ class Interface:
 
 	def play_episode(
 		self, num_humans, num_zombies, frame_skip=True, experienced_replay=True,
-		replay_batches=1, update_target_network=False
+		replay_batches=1, update_target_network=False, replay_type="full"
 	):
 	    state, current_frame = self.reset_episode(num_humans, num_zombies)
 	    done = False
@@ -275,9 +275,9 @@ class Interface:
 	    	if update_target_network:
 	    	    self._target_agent._input_memory = self._agent._input_memory#.copy()
 	    	    self._target_agent._target_memory = self._agent._target_memory#.copy()
-	    	    self._target_agent.experienced_replay(replay_batches)
+	    	    self._target_agent.experienced_replay(replay_batches, replay_type)
 	    	else:
-	    	    self._agent.experienced_replay(replay_batches)
+	    	    self._agent.experienced_replay(replay_batches, replay_type)
 
 	def check_point(self, episode, num_humans, num_zombies, save_file, log=False):
 	    validation_score =\
@@ -289,7 +289,7 @@ class Interface:
 
 	def train_agent(
 	    self, save_file=None, weights=None, num_humans=None, num_zombies=None,
-		check_point_frequency=100,
+		check_point_frequency=100, batches=1, replay_type="full",
 		config=[
 	        "experienced_replay", "log", "frame_skip", #"infinite"
 	        "network_update_delay"
@@ -305,7 +305,8 @@ class Interface:
 	        for episode in range(self._training_episodes):
 	            self.play_episode(
 	                num_humans, num_zombies, "frame_skip" in config,
-	                experienced_replay=True, replay_batches=1, update_target_network=True
+	                experienced_replay=True, replay_batches=batches,
+					update_target_network=True, replay_type=replay_type
 	            )
 
 	            if episode % self._network_update_frequency == 0:
@@ -322,7 +323,7 @@ class Interface:
 	                self.play_episode(
 						num_humans, num_zombies, "frame_skip" in config,
 	                    experienced_replay=(observation+1 == self._network_update_frequency),
-	                    replay_batches=self._network_update_frequency
+	                    replay_batches=self._network_update_frequency, replay_type=replay_type
 	                )
 
 	            self.check_point(
@@ -333,7 +334,10 @@ class Interface:
 	        if "infinite" in config:
 	            episode = 0
 	            while True:
-	                self.play_episode(num_humans, num_zombies, "frame_skip" in config)
+	                self.play_episode(
+						num_humans, num_zombies, "frame_skip" in config,
+						replay_batches=batches, replay_type=replay_type
+					)
 
 	                episode += 1
 	                if episode % check_point_frequency == 0:
@@ -343,7 +347,10 @@ class Interface:
 	                    )
 	        else:
 	            for episode in range(self._training_episodes):
-	                self.play_episode(num_humans, num_zombies, "frame_skip" in config)
+	                self.play_episode(
+						num_humans, num_zombies, "frame_skip" in config,
+						replay_batches=batches, replay_type=replay_type
+					)
 
 	                if episode % check_point_frequency == 0:
 	                    self.check_point(
