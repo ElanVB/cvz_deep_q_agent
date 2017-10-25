@@ -108,14 +108,14 @@ class Environment():
 			self.reward = 1
 
 		if self._simple_rewards:
-			if dead_count > 0:
+			if zombies_killed > 0:
 				self.reward = 1
 			else:
 				self.reward = 0
 
 	def _eat_humans(self):
-		if self._better_rewards:
-			dead_count = 0
+		# if self._better_rewards:
+		dead_count = 0
 
 		for zombie_id in self.zombies:
 			dead_ids = []
