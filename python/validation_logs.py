@@ -3,13 +3,14 @@ import numpy as np, time, sys, pickle, os
 
 repetitions = 3
 arch_index = int(sys.argv[1])
-test_type = "validation"
+# test_type = "validation_long_term"
+test_type = "validation_simple_reward"
 try:
     os.mkdir(test_type)
 except FileExistsError:
     pass
 
-save_file_name = test_type + "/validation_test_log.txt"
+save_file_name = test_type + "/log.txt"
 
 def save_file(architecture, learning_rate, score, time_diff):
 	with open(save_file_name, "a") as f:
@@ -20,7 +21,7 @@ def train_and_test_agent(architecture, learning_rate, test_index):
 		learning_rate=learning_rate,
 		hidden_layers=architecture,
 		max_humans=3, max_zombies=3,
-        randomness=True
+        randomness=True, reward_scheme="simple"
 	)
 	start = time.time()
 	i.train_agent(

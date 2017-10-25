@@ -5,7 +5,7 @@ from random import randrange
 import config
 
 class Environment():
-	def __init__(self, num_humans=0, num_zombies=0, better_rewards=False):
+	def __init__(self, num_humans=0, num_zombies=0, better_rewards=True, simple_rewards=False):
 		if not isinstance(num_humans, int):
 			raise TypeError("num_humans must be an integer")
 
@@ -39,6 +39,7 @@ class Environment():
 		self.score = 0
 		self.reward = 0
 		self._better_rewards = better_rewards
+		self._simple_rewards = simple_rewards
 		self._fibonacci_seq = [1, 1, 2]
 
 		if better_rewards:
@@ -106,6 +107,12 @@ class Environment():
 		if len(self.zombies) == 0:
 			self.reward = 1
 
+		if self._simple_rewards:
+			if dead_count > 0:
+				self.reward = 1
+			else:
+				self.reward = 0
+
 	def _eat_humans(self):
 		if self._better_rewards:
 			dead_count = 0
@@ -148,6 +155,12 @@ class Environment():
 		if len(self.humans) == 0:
 			self.reward = -1
 
+		if self._simple_rewards:
+			if dead_count > 0:
+				self.reward = -1
+			else:
+				self.reward = 0
+
 	def is_done(self):
 		return self._done or len(self.humans) == 0 or len(self.zombies) == 0
 
@@ -167,7 +180,7 @@ class Environment():
 		# if self._better_rewards:
 		# 	self.reward /= self._max_reward
 
-		if self.reward == 0:
+		if not self._simple_rewards and self.reward == 0:
 			live_humans = len(self.humans)
 			num_zombies = len(self.zombies)
 			self.reward = -0.1 * (

@@ -27,7 +27,8 @@ class Interface:
 		validate_episodes=hyperparams.validate_episodes,
 		network_update_frequency=hyperparams.network_update_frequency,
 		render=False, render_delay=0.03, max_humans=1, max_zombies=1,
-		randomness=False, fine_tune=False, actions="default", environment=None
+		randomness=False, fine_tune=False, actions="default", environment=None,
+		reward_scheme="better"
 	):
 		self._state_sequence_length = state_sequence_length
 		self._training_episodes = training_episodes
@@ -58,6 +59,7 @@ class Interface:
 
 		self._max_humans = max_humans
 		self._max_zombies = max_zombies
+		self._reward_scheme = reward_scheme
 
 		self._input_dim = 2 + 2*max_humans + 2*max_zombies
 
@@ -84,7 +86,13 @@ class Interface:
 
 		self._randomness = randomness
 		self._fine_tune = fine_tune
-		self._env = Environment(0, 0, better_rewards=True)
+
+		if reward_scheme == "better":
+			self._env = Environment(0, 0, better_rewards=True)
+		elif reward_scheme == "simple":
+			self._env = Environment(0, 0, better_rewards=False, simple_rewards=True)
+		else:
+			raise ValueError("specified reward scheme is not supported")
 
 		self._environment = self._env.parse_state_file(environment)\
 		if environment != None else None
