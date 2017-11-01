@@ -4,22 +4,29 @@ import numpy as np, time, sys, pickle, os
 repetitions = 3
 optimizer = sys.argv[1]
 arch_index = int(sys.argv[2])
-save_file_name = "{}_hyperparam_check_log.txt".format(optimizer)
+folder = "{}_check/".format(optimizer)
+save_file_name = "{}log.txt".format(folder)
+
+try:
+    os.mkdir(folder)
+except FileExistsError:
+    pass
 
 def save_file(architecture, learning_rate, score, time_diff):
 	with open(save_file_name, "a") as f:
 		f.write("{}_{}_{}_{}\n".format(architecture, learning_rate, score, time_diff))
 
-def train_and_test_agent(architecture, learning_rate):
+def train_and_test_agent(architecture, learning_rate, index):
 	i = Interface(
 		optimizer=optimizer,
 		learning_rate=learning_rate,
 		hidden_layers=architecture,
-		max_humans=3, max_zombies=3
+		max_humans=3, max_zombies=3,
+		randomness=True
 	)
 	start = time.time()
-	i.train_agent(save_file="{}.h5".format(optimizer), config=[
-		"experienced_replay", "experimental_network_update_delay", "frame_skip"
+	i.train_agent(save_file="{}{}_{}_{}.h5".format(folder, architecture, learning_rate, index), config=[
+		"experienced_replay", "network_update_delay", "frame_skip", "log"
 	])
 	time_diff = time.time() - start
 	score = i.test_agent()
@@ -69,8 +76,8 @@ top_arch_data = arch_data[:3]
 for entry in top_arch_data:
     architecture = entry["arch"]
     lr = entry["lr"]
-    for _ in range(repetitions):
+    for i in range(repetitions):
         score, time_diff = train_and_test_agent(
-    		architecture=architecture, learning_rate=lr
+    		architecture=architecture, learning_rate=lr, index=i
     	)
         save_file(architecture, lr, score, time_diff)

@@ -2,6 +2,7 @@ import numpy as np, glob, os
 from matplotlib import pyplot as plt
 
 # plot_type = "replay_sample"
+# plot_type = "network_update_long"
 plot_type = "network_update"
 try:
     os.mkdir("{}/plots".format(plot_type))
@@ -102,7 +103,7 @@ for filename in files:
     # architecture, replay, _ = filename.split("/")[-1].split(".")[0].split("_")
 
     y = np.array(data.strip()[:-1].split(","), dtype=float)
-    x = np.linspace(0, 5000, num=y.size)
+    x = np.linspace(0, 35000, num=y.size)
 
     if architecture in Y:
         if replay not in Y[architecture]:
@@ -123,6 +124,12 @@ for filename in files:
 for architecture in Y:
     for replay in Y[architecture]:
         Y[architecture][replay]["data"] = Y[architecture][replay]["data"] / Y[architecture][replay]["count"]
+        y = Y[architecture][replay]["data"]
+        # for _ in range(15):
+        #     y = np.concatenate([[y[0]], (y[:-1] + y[1:])/2, [y[-1]]])
+
+        Y[architecture][replay]["x"] = np.linspace(0, 5000, num=y.size)
+        Y[architecture][replay]["data"] = y
     # plot_save(Y[architecture]["x"], Y[architecture]["data"], architecture, name="./{}/plots/{}".format(plot_type, architecture))
 
 # with open("{}/random.txt".format(plot_type)) as _file:
@@ -133,7 +140,7 @@ for architecture in Y:
 
 # plot_save_multi(Y, "Validation Scores for Multiple Architectures", random, approx_optimal, name="./{}/plots/multi".format(plot_type))
 for architecture in Y:
-    plot_save_multi(Y[architecture], "Validation Scores for Training Methods {}".format(architecture), name="./{}/plots/{}".format(plot_type, architecture))
+    plot_save_multi(Y[architecture], "Validation Scores for {}".format(architecture), name="./{}/plots/{}".format(plot_type, architecture))
 
 # plot_save(x, y, "Validation Score versus Episodes for Network 1")
 # plot_show(x, y, "Validation Score versus Episodes for Network 1")

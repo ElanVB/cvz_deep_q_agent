@@ -1,8 +1,8 @@
 import numpy as np, glob, os
 from matplotlib import pyplot as plt
 
-# plot_type = "networks"
-plot_type = "validation_large_sample"
+plot_type = "networks"
+# plot_type = "validation_large_sample_1"
 try:
     os.mkdir("{}/plots".format(plot_type))
 except FileExistsError:
@@ -41,6 +41,9 @@ files = glob.glob("./{}/*.txt".format(plot_type))
 
 Y = {}
 for filename in files:
+    if "random" in filename or "optimal" in filename:
+        continue
+
     with open(filename, "r") as log_file:
         data = log_file.readlines()
 

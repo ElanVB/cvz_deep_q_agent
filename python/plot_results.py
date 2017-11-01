@@ -1,7 +1,12 @@
 import numpy as np, glob, os
 from matplotlib import pyplot as plt
 
-plot_type = "validation_large_sample"
+plot_type = "validation_simple_reward"
+# plot_type = "network_update_long"
+# plot_type = "validate_large_net"
+# plot_type = "validate_150"
+# plot_type = "validation_long_term"
+# plot_type = "replay_sample"
 try:
     os.mkdir("{}/plots".format(plot_type))
 except FileExistsError:
@@ -48,7 +53,7 @@ def plot_save_multi(Y, title, random=None, approx_optimal=None, x_axis='Episode'
         y_end_tune = True
         y_end = np.finfo(float).min
 
-    plt.figure()
+    plt.figure(figsize=(7, 4))
 
     for architecture in Y:
         y = Y[architecture]["data"]
@@ -83,7 +88,9 @@ def plot_save_multi(Y, title, random=None, approx_optimal=None, x_axis='Episode'
     plt.xlabel(x_axis)
     plt.ylabel(y_axis)
     plt.axis([x_start, x_end, y_start, y_end])
-    plt.legend()
+    # plt.subplots_adjust(right=.7)
+    # plt.legend(bbox_to_anchor=(1.45, 1), loc=2)
+    plt.legend(loc=2)
     plt.savefig(name, dpi=300)
 
 # def plot_show(x, y, title, x_axis='Episode', y_axis='Score', x_start=None, x_end=None, y_start=None, y_end=None):
@@ -115,6 +122,10 @@ for filename in files:
     architecture, _ = filename.split("/")[-1].split(".")[0].split("_")
 
     y = np.array(data[:-1].split(","), dtype=float)
+
+    # for _ in range(15):
+    #     y = np.concatenate([[y[0]], (y[:-1] + y[1:])/2, [y[-1]]])
+
     x = np.linspace(0, 5000, num=y.size)
 
     if architecture in Y:
@@ -136,7 +147,7 @@ with open("{}/random.txt".format(plot_type)) as _file:
 with open("{}/approx_optimal.txt".format(plot_type)) as _file:
     approx_optimal = float(_file.read().strip())
 
-plot_save_multi(Y, "Validation Scores for Multiple Architectures", random, approx_optimal, name="./{}/plots/multi".format(plot_type))
+plot_save_multi(Y, "Validation Score for the Simple Reward System", random, approx_optimal, name="./{}/plots/multi".format(plot_type))
 
 # plot_save(x, y, "Validation Score versus Episodes for Network 1")
 # plot_show(x, y, "Validation Score versus Episodes for Network 1")

@@ -119,7 +119,7 @@ with open("{}/approx_optimal.txt".format(plot_type)) as _file:
     approx_optimal = float(_file.read().strip())
 
 for architecture in Y:
-    plot_save_multi(Y[architecture], "Validation Scores for Multiple State Encoding Dimensions", random, approx_optimal, name="./{}/plots/{}".format(plot_type, architecture))
+    plot_save_multi(Y[architecture], "Validation Scores for Multiple State Encoding Dimensions\n for {}".format(architecture), random, approx_optimal, name="./{}/plots/{}".format(plot_type, architecture))
 
 # plot_save(x, y, "Validation Score versus Episodes for Network 1")
 # plot_show(x, y, "Validation Score versus Episodes for Network 1")
