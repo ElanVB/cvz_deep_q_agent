@@ -2,25 +2,25 @@
 
 ## Usage example:
 ### Use default hyper-parameters:
-`from interface import Interface
-i = Interface()
-i.train_agent()
-print("Test score: {}".format(i.test_agent()))
-i.demo_agent()`
+`from interface import Interface`
+`i = Interface()`
+`i.train_agent()`
+`print("Test score: {}".format(i.test_agent()))`
+`i.demo_agent()`
 
 ### Use own hyper-parameters:
-`from interface import Interface
-i = Interface(
-    learning_rate=0.001, hidden_layers=(512, 512, 256, 64),
-    training_episodes=5000, epsilon_decay=2.25e-4,
-    max_humans=1, max_zombies=1
-)
-i.train_agent(save_file="custom_params", config=[
-	"network_update_delay",
-	"frame_skip"
-])
-print("Test score: {}".format(i.test_agent()))
-i.demo_agent()`
+`from interface import Interface`
+`i = Interface(`
+    `learning_rate=0.001, hidden_layers=(512, 512, 256, 64),`
+    `training_episodes=5000, epsilon_decay=2.25e-4,`
+    `max_humans=1, max_zombies=1`
+`)`
+`i.train_agent(save_file="custom_params", config=[`
+	`"network_update_delay",`
+	`"frame_skip"`
+`])`
+`print("Test score: {}".format(i.test_agent()))`
+`i.demo_agent()`
 
 ## Installation Instructions:
 * MacOSX - Package manager
