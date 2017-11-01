@@ -27,7 +27,7 @@ class Interface:
 		validate_episodes=hyperparams.validate_episodes,
 		network_update_frequency=hyperparams.network_update_frequency,
 		render=False, render_delay=0.03, max_humans=1, max_zombies=1,
-		randomness=False, fine_tune=False, actions="default", environment=None,
+		randomness=True, fine_tune=False, actions="default", environment=None,
 		reward_scheme="better"
 	):
 		self._state_sequence_length = state_sequence_length
@@ -299,7 +299,7 @@ class Interface:
 	    self, save_file=None, weights=None, num_humans=None, num_zombies=None,
 		check_point_frequency=100, batches=1, replay_type="full",
 		config=[
-	        "experienced_replay", "log", "frame_skip", #"infinite"
+			"frame_skip",
 	        "network_update_delay"
 	    ]
 	):
