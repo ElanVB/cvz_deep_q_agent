@@ -2,7 +2,7 @@ from coord import Coord
 from moveable import Moveable
 from entity import Entity
 from random import randrange
-import config
+import config, math, numpy as np
 
 class Environment():
 	def __init__(self, num_humans=0, num_zombies=0, better_rewards=True, simple_rewards=False):
@@ -82,6 +82,9 @@ class Environment():
 			self.zombies[zombie_id].y = int(self.zombies[zombie_id].y)
 
 	def _move_shooter(self, x, y):
+		x = min(x, config.WIDTH-1)
+		y = min(y, config.HEIGHT-1)
+		
 		self.shooter.move(x, y)
 		self.shooter.x = int(self.shooter.x)
 		self.shooter.y = int(self.shooter.y)
@@ -290,12 +293,57 @@ class Environment():
 
 		return state
 
+	def draw(self, grid, value, radius, h, w):
+		scale_factor = config.STATE_IMAGE_SCALE
+		grid_width = math.ceil(config.WIDTH * scale_factor)
+		grid_height = math.ceil(config.HEIGHT * scale_factor)
+
+		radius = int(radius)
+
+		grid[h][w] = value
+		for inc_h in range(-radius, radius+1):
+			for inc_w in range(-radius, radius+1):
+				if h+inc_h < grid_height and h+inc_h >= 0 and w+inc_w < grid_width and w+inc_w >= 0:
+					if Coord(inc_h, inc_w).distance(Coord(0, 0)) <= radius:
+						grid[h+inc_h][w+inc_w] = value
+
+		return grid
+
+	def get_state_image(self, type="grayscale"):
+		scale_factor = config.STATE_IMAGE_SCALE
+		grid_width = math.ceil(config.WIDTH * scale_factor)
+		grid_height = math.ceil(config.HEIGHT * scale_factor)
+
+		grid = np.zeros((grid_height, grid_width))
+
+		values = config.STATE_IMAGE_VALUES
+		# draw humans
+		for _, human in self.humans.items():
+			w = int(human.x * scale_factor)
+			h = int(human.y * scale_factor)
+			grid = self.draw(grid, values["human"], config.ZOMBIE_INTERACT_RANGE * scale_factor, h, w)
+
+		# draw zombies
+		for _, zombie in self.zombies.items():
+			w = int(zombie.x * scale_factor)
+			h = int(zombie.y * scale_factor)
+			grid = self.draw(grid, values["zombie"], config.ZOMBIE_INTERACT_RANGE * scale_factor, h, w)
+
+		# draw shooter
+		w = int(self.shooter.x * scale_factor)
+		h = int(self.shooter.y * scale_factor)
+		grid = self.draw(grid, values["shooter"], config.SHOOTER_INTERACT_RANGE * scale_factor, h, w)
+
+		return grid
+
 	def reset(self, num_humans=None, num_zombies=None):
+		###################################################
 		if num_humans == None:
-			num_humans = len(self.humans)
+			num_humans = len(self.humans) # this does not work
 
 		if num_zombies == None:
-			num_zombies = len(self.zombies)
+			num_zombies = len(self.zombies) # this does not work
+		###################################################
 
 		shooter = Entity(
 			randrange(config.WIDTH), randrange(config.HEIGHT),

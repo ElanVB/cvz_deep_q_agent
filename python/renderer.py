@@ -3,7 +3,7 @@ from pygame.locals import *
 from environment import Environment
 
 class Renderer():
-	def __init__(self, window_scale=0.5):
+	def __init__(self, window_scale=0.5, render_state=False):
 		if not isinstance(window_scale, float):
 			raise TypeError("window_scale must be a float")
 
@@ -19,12 +19,18 @@ class Renderer():
 		window_width = int(screen_width * window_scale)
 		window_height = int(screen_height * window_scale)
 
-		window = pygame.display.set_mode((window_width, window_height))
+		self._render_state = render_state
+		if render_state:
+			self._window  = pygame.display.set_mode((window_width*2, window_height))
+			self._state_window = pygame.display.set_mode((window_width*2, window_height))
+		else:
+			self._window  = pygame.display.set_mode((window_width, window_height))
+
+
 		x_scale = window_width / config.WIDTH
 		y_scale = window_height / config.HEIGHT
 
 		self._info_object = info_object
-		self._window = window
 		self._window_width = window_width
 		self._window_height = window_height
 		self._x_scale = x_scale
@@ -102,6 +108,16 @@ class Renderer():
 			(x_pos, y_pos)
 		)
 
+	def _draw_state(self, state):
+		for row in range(state.shape[0]):
+			for col in range(state.shape[1]):
+				color = state[row][col] * 255
+				y = row * self._window_height / state.shape[0]
+				x = col * self._window_width / state.shape[1] + self._window_width
+				width = self._window_width / state.shape[1]
+				height = self._window_height / state.shape[0] + 1
+				pygame.draw.rect(self._state_window, (color, color, color), (x, y, width, height))
+
 	def draw_environment(self, environment):
 		if not isinstance(environment, Environment):
 			raise TypeError("environment must be of type Environment")
@@ -120,6 +136,9 @@ class Renderer():
 				environment.humans[human_id].x,
 				environment.humans[human_id].y
 			)
+
+		if self._render_state:
+			self._draw_state(environment.get_state_image())
 
 		pygame.display.update()
 

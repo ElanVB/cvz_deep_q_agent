@@ -28,7 +28,7 @@ class Interface:
 		network_update_frequency=hyperparams.network_update_frequency,
 		render=False, render_delay=0.03, max_humans=1, max_zombies=1,
 		randomness=True, fine_tune=False, actions="default", environment=None,
-		reward_scheme="better"
+		reward_scheme="better", network_type="DQ", state_type="coords"
 	):
 		self._state_sequence_length = state_sequence_length
 		self._training_episodes = training_episodes
@@ -55,7 +55,7 @@ class Interface:
 		self._render = render
 		self._render_delay = render_delay
 		if render:
-			self._renderer = Renderer()
+			self._renderer = Renderer(render_state=True)
 
 		self._max_humans = max_humans
 		self._max_zombies = max_zombies
@@ -96,8 +96,19 @@ class Interface:
 
 		self._environment = self._env.parse_state_file(environment)\
 		if environment != None else None
+		self._network_type = network_type
+		self._state_type = state_type
+
+		###########################################################
+		# move this check outside of this function?
+		###########################################################
+		if state_type == "coords":
+			self._state_shape = None
+		elif state_type == "image":
+			self._state_shape = self._env.get_state_image().shape
 
 	def initialize_agent(self, weights=None):
+
 		self._agent = Agent(
 			state_dim=self._input_dim, action_dim=self._output_dim,
 			initial_epsilon=self._initial_epsilon,
@@ -111,7 +122,11 @@ class Interface:
 			state_sequence_length=self._state_sequence_length,
 			activation=self._activation, gamma=self._gamma,
 			hidden_layers=self._hidden_layers, batch_size=self._batch_size,
-			replay_start_size=self._replay_start_size
+			replay_start_size=self._replay_start_size,
+			network_type=self._network_type,
+			#################################
+			state_shape=self._state_shape
+			#################################
 		)
 
 		if weights != None:
@@ -123,33 +138,39 @@ class Interface:
 			self._agent.load_weights(weights)
 
 	def initialize_target_agent(self, weights=None):
-		self._target_agent = Agent(
-			state_dim=self._input_dim, action_dim=self._output_dim,
-			initial_epsilon=self._initial_epsilon,
-			final_epsilon=self._final_epsilon,
-			epsilon_decay=self._epsilon_decay, memory_size=self._memory_size,
-			optimizer=self._optimizer,
-			learning_rate=self._learning_rate,
-			gradient_momentum=self._gradient_momentum,
-			squared_gradient_momentum=self._squared_gradient_momentum,
-			min_squared_gradient=self._min_squared_gradient,
-			state_sequence_length=self._state_sequence_length,
-			activation=self._activation, gamma=self._gamma,
-			hidden_layers=self._hidden_layers, batch_size=self._batch_size,
-			replay_start_size=self._replay_start_size
-		)
+		if self._network_type == "DQ":
+			self._target_agent = Agent(
+				state_dim=self._input_dim, action_dim=self._output_dim,
+				initial_epsilon=self._initial_epsilon,
+				final_epsilon=self._final_epsilon,
+				epsilon_decay=self._epsilon_decay, memory_size=self._memory_size,
+				optimizer=self._optimizer,
+				learning_rate=self._learning_rate,
+				gradient_momentum=self._gradient_momentum,
+				squared_gradient_momentum=self._squared_gradient_momentum,
+				min_squared_gradient=self._min_squared_gradient,
+				state_sequence_length=self._state_sequence_length,
+				activation=self._activation, gamma=self._gamma,
+				hidden_layers=self._hidden_layers, batch_size=self._batch_size,
+				replay_start_size=self._replay_start_size
+			)
 
-		if weights != None:
-			if not isinstance(weights, str):
-				raise TypeError(
-					"weights must be a string path to your weights file"
-				)
+			if weights != None:
+				if not isinstance(weights, str):
+					raise TypeError(
+						"weights must be a string path to your weights file"
+					)
 
-			self._target_agent.load_weights(weights)
+				self._target_agent.load_weights(weights)
+		else:
+			print("network type is not DQ: no interface target network created.")
 
 	def copy_target_to_prediction_agent(self):
-		self._target_agent.save_model("temp")
-		self._agent.load_weights("temp")
+		if self._network_type == "DQ":
+			self._target_agent.save_model("temp")
+			self._agent.load_weights("temp")
+		elif self._network_type == "DDQ":
+			self._agent.update_prediction_network()
 
 	def initialize_environment(
 		self, num_humans=None, num_zombies=None, randomness=True
@@ -173,16 +194,21 @@ class Interface:
 			self._env.reset(humans, zombies)
 
 	def get_state(self):
-		state = np.array(self._env.get_state())
-		state = np.append(
-			state[:(2 + 2 * self._max_humans)],
-			state[200:(200 + 2 * self._max_zombies)]
-		)
+		if self._state_type == "coords":
+			state = np.array(self._env.get_state())
+			state = np.append( # I don't think this is actually necessary....
+				state[:(2 + 2 * self._max_humans)],
+				state[200:(200 + 2 * self._max_zombies)]
+			)
+		elif self._state_type == "image":
+			state = self._env.get_state_image()[:, :, np.newaxis]
+
 		return state
 
 	def get_state_sequence(self, previous_sequence=None):
 		state = self.get_state()
 
+		# This should break things if multiple image frames are used
 		if previous_sequence is None:
 			state = np.vstack([state] * self._state_sequence_length)
 		else:
@@ -280,7 +306,7 @@ class Interface:
 
 	    self._agent.decay_epsilon()
 	    if experienced_replay:
-	    	if update_target_network:
+	    	if update_target_network and self._network_type == "DQ":
 	    	    self._target_agent._input_memory = self._agent._input_memory#.copy()
 	    	    self._target_agent._target_memory = self._agent._target_memory#.copy()
 	    	    self._target_agent.experienced_replay(replay_batches, replay_type)
@@ -333,6 +359,10 @@ class Interface:
 	                    experienced_replay=(observation+1 == self._network_update_frequency),
 	                    replay_batches=self._network_update_frequency, replay_type=replay_type
 	                )
+
+				# this is sort of useless because these methods aren't really compatable
+	            if self._network_type == "DDQ":
+	                self.copy_target_to_prediction_agent()
 
 	            self.check_point(
 	                (episode+1)*self._network_update_frequency,
@@ -394,7 +424,7 @@ class Interface:
 
 	def demo_agent(self, episodes=10, infinite=False, num_humans=None, num_zombies=None):
 		total_score = 0.0
-		renderer = Renderer(window_scale=.75)
+		renderer = Renderer(window_scale=.5)
 
 		if infinite:
 			episodes = np.iinfo(np.int32).max

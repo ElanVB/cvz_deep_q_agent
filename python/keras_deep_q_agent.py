@@ -1,7 +1,7 @@
 import sys, collections, random
 import numpy as np
 from keras.models import Sequential
-from keras.layers import Dense, Flatten
+from keras.layers import Dense, Flatten, Conv2D
 from keras.optimizers import RMSprop, Nadam, Adam
 
 class Agent:
@@ -9,18 +9,26 @@ class Agent:
 		self, state_dim, action_dim, initial_epsilon, final_epsilon,
 		epsilon_decay, memory_size, optimizer, learning_rate, gradient_momentum,
 		squared_gradient_momentum, min_squared_gradient, state_sequence_length,
-		activation, gamma, hidden_layers, batch_size, replay_start_size
+		activation, gamma, hidden_layers, batch_size, replay_start_size,
+		network_type="DQ", state_shape=None
 	):
 		self._epsilon = initial_epsilon
 		self._final_epsilon = final_epsilon
 		self._epsilon_decay = epsilon_decay
 		self._state_dim = state_dim
 		self._action_dim = action_dim
+		self._network_type = network_type
 		self._model = self._compile_model(
 			state_dim, action_dim, optimizer, learning_rate, gradient_momentum,
 			squared_gradient_momentum, min_squared_gradient,
-			state_sequence_length, activation, hidden_layers
+			state_sequence_length, activation, hidden_layers, state_shape
 		)
+		if network_type == "DDQ":
+			self._target_model = self._compile_model(
+				state_dim, action_dim, optimizer, learning_rate, gradient_momentum,
+				squared_gradient_momentum, min_squared_gradient,
+				state_sequence_length, activation, hidden_layers, state_shape
+			)
 		self._input_memory = collections.deque(maxlen=memory_size)
 		self._target_memory = collections.deque(maxlen=memory_size)
 		self._gamma = gamma
@@ -30,14 +38,23 @@ class Agent:
 	def _compile_model(
 		self, state_dim, action_dim, optimizer, learning_rate,
 		gradient_momentum, squared_gradient_momentum, min_squared_gradient,
-		state_sequence_length, activation, hidden_layers
+		state_sequence_length, activation, hidden_layers, state_shape=None
 	):
 		model = Sequential()
-		model.add(Dense(
-			hidden_layers[0],
-			input_shape=(state_sequence_length, state_dim),
-			activation=activation
-		))
+		if state_shape != None:
+			model.add(Conv2D(16, (3, 3), activation="relu", input_shape=(state_shape + (1,))))
+			model.add(Conv2D(32, (3, 3), activation="relu"))
+			# model.add(Dense(
+			# 	hidden_layers[0],
+			# 	input_shape=state_shape, # can think about how to add multiple frames, but not needed for now
+			# 	activation=activation
+			# ))
+		else:
+			model.add(Dense(
+				hidden_layers[0],
+				input_shape=(state_sequence_length, state_dim),
+				activation=activation
+			))
 		model.add(Flatten())
 
 		for size in hidden_layers[1:]:
@@ -81,12 +98,24 @@ class Agent:
 	def store_frame(self, state, action, reward, new_state, done):
 		target = reward
 		if not done:
-			target += (
-				self._gamma *
-				np.amax(self._model.predict(new_state)[0])
-			)
+			if self._network_type == "DQ":
+				target += (
+					self._gamma *
+					np.amax(self._model.predict(new_state)[0])
+				)
+			elif self._network_type == "DDQ":
+				target += (
+					self._gamma *
+					self._target_model.predict(new_state)[0][np.argmax(self._model.predict(new_state)[0])]
+				)
+			else:
+				raise ValueError("given train_type not supported.")
 
-		prev_target = self._model.predict(state)[0]
+		if self._network_type == "DQ":
+			prev_target = self._model.predict(state)[0]
+		elif self._network_type == "DDQ":
+			prev_target = self._target_model.predict(state)[0]
+
 		new_target = prev_target
 		new_target[action] = target
 
@@ -115,9 +144,23 @@ class Agent:
 			else:
 				raise ValueError("invaild replay type")
 
-			self._model.fit(
-				inputs, targets,
-				batch_size=self._batch_size,
-				epochs=1, verbose=0
-				# , shuffle=False # slightly better result with 10-20s time increase
-			)
+			if self._network_type == "DQ":
+				self._model.fit(
+					inputs, targets,
+					batch_size=self._batch_size,
+					epochs=1, verbose=0
+					# , shuffle=False # slightly better result with 10-20s time increase
+				)
+			elif self._network_type == "DDQ":
+				self._target_model.fit(
+					inputs, targets,
+					batch_size=self._batch_size,
+					epochs=1, verbose=0
+					# , shuffle=False # slightly better result with 10-20s time increase
+				)
+			else:
+				raise ValueError("invaild network type")
+
+	def update_prediction_network(self):
+		self._target_model.save("temp")
+		self._model.load_weights("temp")
