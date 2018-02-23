@@ -55,7 +55,8 @@ class Interface:
 		self._render = render
 		self._render_delay = render_delay
 		if render:
-			self._renderer = Renderer(render_state=True)
+			# self._renderer = Renderer(render_state=True)
+			self._renderer = Renderer()
 
 		self._max_humans = max_humans
 		self._max_zombies = max_zombies
@@ -414,8 +415,8 @@ class Interface:
 			while not done:
 				state, done = self.agent_on_policy_act(state)
 
-				if self._render and validate and episode+1 == end_episode:
-					self.render()
+				# if self._render and validate and episode+1 == end_episode:
+				# 	self.render()
 
 			total_score += self._env.score
 
@@ -424,7 +425,6 @@ class Interface:
 
 	def demo_agent(self, episodes=10, infinite=False, num_humans=None, num_zombies=None):
 		total_score = 0.0
-		renderer = Renderer(window_scale=.5)
 
 		if infinite:
 			episodes = np.iinfo(np.int32).max
@@ -438,8 +438,7 @@ class Interface:
 			while not done:
 				state, done = self.agent_on_policy_act(state)
 				reward += self._env.reward
-				renderer.draw_environment(self._env)
-				time.sleep(self._render_delay)
+				self.render()
 
 			total_score += self._env.score
 
@@ -453,3 +452,15 @@ class Interface:
 		print(
 			"\nAverage score: {}".format(total_score/episodes)
 		)
+
+	# def demo_agent_on_env(self, environment):
+	# 	self._env = environment.copy()
+	# 	renderer = Renderer()
+
+	# 	state = self.get_state_sequence()
+	# 	while not self._env.is_done():
+	# 		state, done = self.agent_on_policy_act(state)
+	# 		renderer.draw_environment(self._env)
+	# 		time.sleep(self._render_delay)
+
+	# 	return self._env.score

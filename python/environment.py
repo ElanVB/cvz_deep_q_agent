@@ -229,6 +229,23 @@ class Environment():
 
 		return state
 
+	def copy(self):
+		new_env = Environment()
+		new_env.shooter = self.shooter.copy()
+		new_env.humans = {i: h.copy() for i, h in self.humans.items()}
+		new_env.zombies = {i: z.copy() for i, z in self.zombies.items()}
+		new_env._max_reward = self._max_reward
+
+		new_env.score = self.score
+		new_env.reward = self.reward
+		new_env._better_rewards = self._better_rewards
+		new_env._simple_rewards = self._simple_rewards
+		new_env._fibonacci_seq = [i for i in self._fibonacci_seq]
+		new_env._done = self._done
+		new_env._round = self._round
+
+		return new_env
+
 	def load_state(self, state):
 		self._load_state(
 			state["shooter"].copy(),
